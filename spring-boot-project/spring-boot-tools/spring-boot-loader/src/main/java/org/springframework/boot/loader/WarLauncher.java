@@ -25,6 +25,8 @@ import org.springframework.boot.loader.archive.Archive;
  *
  * @author Phillip Webb
  * @author Andy Wilkinson
+ *
+ * War 包，启动类。
  */
 public class WarLauncher extends ExecutableArchiveLauncher {
 

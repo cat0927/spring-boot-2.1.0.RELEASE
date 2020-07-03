@@ -25,6 +25,10 @@ import org.springframework.boot.loader.archive.Archive;
  *
  * @author Phillip Webb
  * @author Andy Wilkinson
+ *
+ * Jar 文件启动类。
+ *
+ *  build.xml 文件中 manifest 》 attribute 》 “Main-Class”
  */
 public class JarLauncher extends ExecutableArchiveLauncher {
 
