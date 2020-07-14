@@ -90,13 +90,30 @@ public class AutoConfigurationImportSelector
 
 	private ResourceLoader resourceLoader;
 
+	/**
+	 * 所有组件，自动装配逻辑都在 【 selectImports 】
+	 * @param annotationMetadata
+	 * @return
+	 */
 	@Override
 	public String[] selectImports(AnnotationMetadata annotationMetadata) {
 		if (!isEnabled(annotationMetadata)) {
 			return NO_IMPORTS;
 		}
+
+		/**
+		 * 加载，自动装配的元数据。{@link AutoConfigurationMetadataLoader#loadMetadata(ClassLoader)}
+		 *
+		 *  1、AutoConfigurationMetadataLoader 是 AutoConfigurationMetadata 的加载器。
+		 *  2、{@link AutoConfigurationMetadata 自动装配元信息接口。
+		 *
+		 */
 		AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader
 				.loadMetadata(this.beanClassLoader);
+
+		/**
+		 * 【 getAutoConfigurationEntry 】{@link #getAutoConfigurationEntry(AutoConfigurationMetadata, AnnotationMetadata)}
+		 */
 		AutoConfigurationEntry autoConfigurationEntry = getAutoConfigurationEntry(
 				autoConfigurationMetadata, annotationMetadata);
 		return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
@@ -115,15 +132,54 @@ public class AutoConfigurationImportSelector
 		if (!isEnabled(annotationMetadata)) {
 			return EMPTY_ENTRY;
 		}
+
+		// 获取 @EnableAutoConfiguration 标注类的元信息。
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
+
+		/**
+		 * 由于 configurations 作为 selectImports(AnnotationMetadata) 方法返回对象。
+		 * 而该方法返回的是导入类名的集合，所以该多谢应该是自动装配的候选类名集合。 {@link #getCandidateConfigurations(AnnotationMetadata, AnnotationAttributes)}
+		 */
 		List<String> configurations = getCandidateConfigurations(annotationMetadata,
 				attributes);
+
+		// 去除重复对象。说明 configurations 存在重复的可能。
 		configurations = removeDuplicates(configurations);
+
+		/**
+		 * 由于后续 configuration 将移除 exclusions 所以 exclusions 应该是自动装配组件排除名单。{@link #getExclusions(AnnotationMetadata, AnnotationAttributes)}
+		 */
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+
+		/**
+		 * 校验 {@link #checkExcludedClasses(List, Set)}
+		 */
 		checkExcludedClasses(configurations, exclusions);
+
+		// 删除 `exclusions` 自动装配组件。
 		configurations.removeAll(exclusions);
+
+
+		/**
+		 *
+		 * 1、getCandidateConfigurations
+		 * 	 获取工厂类名单 factoryNames 后，将它们逐一进行类加载，这些类必须是 factoryClass 子类。并被实例化且予排序。
+		 * 	 换言之，META-INF/spring.factories 资源中声明 OnClassCondition 也是 `AutoConfigurationImportFilter` 实现类。
+		 * 2、filter
+		 *
+		 *
+		 *
+		 */
+
+		/**
+		 * 再次执行过滤操作。{@link #filter(List, AutoConfigurationMetadata)}
+		 */
 		configurations = filter(configurations, autoConfigurationMetadata);
+
+		// configurations 对象返回前，貌似触发一个自动装配的导入事件，事件可能包括候选的装配组件名单。
 		fireAutoConfigurationImportEvents(configurations, exclusions);
+
+		// 构件 `AutoConfigurationEntry` 对象信息。
 		return new AutoConfigurationEntry(configurations, exclusions);
 	}
 
@@ -178,6 +234,20 @@ public class AutoConfigurationImportSelector
 	 */
 	protected List<String> getCandidateConfigurations(AnnotationMetadata metadata,
 			AnnotationAttributes attributes) {
+
+		/**
+		 *
+		 * SpringFactoriesLoader 是 Spring Framework 工厂机制的加载器。
+		 * 1、loadFactoryNames() 原理
+		 *
+		 * 	  1、搜索指定 ClassLoader 下的所有 `META-INF/spring.factories`
+		 *
+		 * 	  2、将 一个或多个 `META-INF/spring-factories` 资源内容作为 Properties 文件读取，
+		 * 	  	合并为一个Key，为接口的全名、value 为实现类全类名列表 Map，
+		 *
+		 * 	  3、再从返回 Map 中查找并返回方法指定的类名所映射的实现类全类名列表。
+		 *
+		 */
 		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(
 				getSpringFactoriesLoaderFactoryClass(), getBeanClassLoader());
 		Assert.notEmpty(configurations,
@@ -197,6 +267,11 @@ public class AutoConfigurationImportSelector
 
 	private void checkExcludedClasses(List<String> configurations,
 			Set<String> exclusions) {
+
+		/**
+		 * 将排除集合 `exclusions` 从候选自动装配 Class 名单，configurations 中移除。
+		 * 计算后的 configuration 并非最终自动装配 Class名单。还有再次过滤。
+		 */
 		List<String> invalidExcludes = new ArrayList<>(exclusions.size());
 		for (String exclusion : exclusions) {
 			if (ClassUtils.isPresent(exclusion, getClass().getClassLoader())
@@ -205,6 +280,10 @@ public class AutoConfigurationImportSelector
 			}
 		}
 		if (!invalidExcludes.isEmpty()) {
+
+			/**
+			 * 触发排除类非法异常 {@link #handleInvalidExcludes(List)}
+			 */
 			handleInvalidExcludes(invalidExcludes);
 		}
 	}
@@ -236,6 +315,10 @@ public class AutoConfigurationImportSelector
 		Set<String> excluded = new LinkedHashSet<>();
 		excluded.addAll(asList(attributes, "exclude"));
 		excluded.addAll(Arrays.asList(attributes.getStringArray("excludeName")));
+
+		/**
+		 * {@link #getExcludeAutoConfigurationsProperty()}
+		 */
 		excluded.addAll(getExcludeAutoConfigurationsProperty());
 		return excluded;
 	}
@@ -246,6 +329,10 @@ public class AutoConfigurationImportSelector
 			return binder.bind(PROPERTY_NAME_AUTOCONFIGURE_EXCLUDE, String[].class)
 					.map(Arrays::asList).orElse(Collections.emptyList());
 		}
+
+		/**
+		 * 将 `spring.autoconfigure.exclude` 配置值累计至排查集合 `excluded`
+		 */
 		String[] excludes = getEnvironment()
 				.getProperty(PROPERTY_NAME_AUTOCONFIGURE_EXCLUDE, String[].class);
 		return (excludes != null) ? Arrays.asList(excludes) : Collections.emptyList();
@@ -257,8 +344,16 @@ public class AutoConfigurationImportSelector
 		String[] candidates = StringUtils.toStringArray(configurations);
 		boolean[] skip = new boolean[candidates.length];
 		boolean skipped = false;
+
+		/**
+		 * 【 getAutoConfigurationImportFilters】{@link #getAutoConfigurationImportFilters()}
+		 */
 		for (AutoConfigurationImportFilter filter : getAutoConfigurationImportFilters()) {
 			invokeAwareMethods(filter);
+
+			/**
+			 * 【 match 】{@link org.springframework.boot.autoconfigure.condition.FilteringSpringBootCondition#match(String[], AutoConfigurationMetadata)}
+			 */
 			boolean[] match = filter.match(candidates, autoConfigurationMetadata);
 			for (int i = 0; i < match.length; i++) {
 				if (!match[i]) {
@@ -287,6 +382,10 @@ public class AutoConfigurationImportSelector
 	}
 
 	protected List<AutoConfigurationImportFilter> getAutoConfigurationImportFilters() {
+
+		/**
+		 * 故查找 `AutoConfigurationImportFilter` 所有 META-INF/spring.factories 资源中的配置，
+		 */
 		return SpringFactoriesLoader.loadFactories(AutoConfigurationImportFilter.class,
 				this.beanClassLoader);
 	}
