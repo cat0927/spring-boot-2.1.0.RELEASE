@@ -48,6 +48,10 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 			AutoConfigurationMetadata autoConfigurationMetadata) {
 		ConditionEvaluationReport report = ConditionEvaluationReport
 				.find(this.beanFactory);
+
+		/**
+		 * 【 getOutcomes 】{@link OnClassCondition#getOutcomes(String[], AutoConfigurationMetadata)}
+		 */
 		ConditionOutcome[] outcomes = getOutcomes(autoConfigurationClasses,
 				autoConfigurationMetadata);
 		boolean[] match = new boolean[outcomes.length];

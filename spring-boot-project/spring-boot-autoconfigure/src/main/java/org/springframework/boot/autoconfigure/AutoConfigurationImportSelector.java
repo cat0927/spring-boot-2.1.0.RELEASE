@@ -102,6 +102,16 @@ public class AutoConfigurationImportSelector
 		}
 
 		/**
+		 * 【 整体流程】
+		 * 1、通过 SpringFactoriesLoader#loadFactoryNames() 获取 `META-INF/spring.factories` 资源中 @EnableAutoConfiguration 所关联的自动状态的Class集合
+		 * 2、读取当前配置类所标注 @EnableAutoConfiguration 属性 exclude 和 excludeName 与 Spring.autoconfigure.exclude 配置属性合并为自动装配 class 排除集合
+		 * 3、检查自动装配 class 排除集合是否合法
+		 * 4、排除候选自动装配 Class集合 的排除名单
+		 * 5、再次过滤候选自动装配 Class 集合中 Class 不存在的成员。
+		 *
+		 */
+
+		/**
 		 * 加载，自动装配的元数据。{@link AutoConfigurationMetadataLoader#loadMetadata(ClassLoader)}
 		 *
 		 *  1、AutoConfigurationMetadataLoader 是 AutoConfigurationMetadata 的加载器。
@@ -166,9 +176,6 @@ public class AutoConfigurationImportSelector
 		 * 	 获取工厂类名单 factoryNames 后，将它们逐一进行类加载，这些类必须是 factoryClass 子类。并被实例化且予排序。
 		 * 	 换言之，META-INF/spring.factories 资源中声明 OnClassCondition 也是 `AutoConfigurationImportFilter` 实现类。
 		 * 2、filter
-		 *
-		 *
-		 *
 		 */
 
 		/**
@@ -244,6 +251,8 @@ public class AutoConfigurationImportSelector
 		 *
 		 * 	  2、将 一个或多个 `META-INF/spring-factories` 资源内容作为 Properties 文件读取，
 		 * 	  	合并为一个Key，为接口的全名、value 为实现类全类名列表 Map，
+		 *
+		 * 	    key: EnableAutoConfiguration.class
 		 *
 		 * 	  3、再从返回 Map 中查找并返回方法指定的类名所映射的实现类全类名列表。
 		 *

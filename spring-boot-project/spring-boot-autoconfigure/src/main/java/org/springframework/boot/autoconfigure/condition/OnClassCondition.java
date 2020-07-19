@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
 class OnClassCondition extends FilteringSpringBootCondition {
 
 	@Override
-	protected final ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses,
+	protected final ConditionOutcome[]  getOutcomes(String[] autoConfigurationClasses,
 			AutoConfigurationMetadata autoConfigurationMetadata) {
 		// Split the work and perform half in a background thread. Using a single
 		// additional thread seems to offer the best performance. More threads make
