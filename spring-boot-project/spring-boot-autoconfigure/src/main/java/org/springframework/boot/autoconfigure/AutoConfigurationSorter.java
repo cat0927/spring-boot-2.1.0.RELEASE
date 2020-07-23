@@ -51,6 +51,11 @@ class AutoConfigurationSorter {
 		this.autoConfigurationMetadata = autoConfigurationMetadata;
 	}
 
+	/**
+	 * 对自动装配 Class 集合进行排序。
+	 * @param classNames
+	 * @return
+	 */
 	public List<String> getInPriorityOrder(Collection<String> classNames) {
 		AutoConfigurationClasses classes = new AutoConfigurationClasses(
 				this.metadataReaderFactory, this.autoConfigurationMetadata, classNames);
@@ -59,6 +64,10 @@ class AutoConfigurationSorter {
 		Collections.sort(orderedClassNames);
 		// Then sort by order
 		orderedClassNames.sort((o1, o2) -> {
+
+			/**
+			 * 【 getOrder】{@link AutoConfigurationClass#getOrder()} 
+			 */
 			int i1 = classes.get(o1).getOrder();
 			int i2 = classes.get(o2).getOrder();
 			return Integer.compare(i1, i2);
@@ -207,10 +216,20 @@ class AutoConfigurationSorter {
 		}
 
 		private int getOrder() {
+
+			/**
+			 * 【 wasProcessed】该方法依赖于 {@link org.springframework.boot.autoconfigure.AutoConfigurationMetadataLoader.PropertiesAutoConfigurationMetadata#wasProcessed(String)}  }
+			 * 	取决与指定的自动装配 Class 是否在 META-INF/spring-autoconfigure-metadata.properties 资源中配置为属性名，
+			 * 
+			 */
 			if (wasProcessed()) {
 				return this.autoConfigurationMetadata.getInteger(this.className,
 						"AutoConfigureOrder", AutoConfigureOrder.DEFAULT_ORDER);
 			}
+
+			/**
+			 * 读取自动装配类 AutoConfigureOrder 的配置值。如果不存在则使用 {@link AutoConfigureOrder.DEFAULT_ORDER}
+			 */
 			Map<String, Object> attributes = getAnnotationMetadata()
 					.getAnnotationAttributes(AutoConfigureOrder.class.getName());
 			return (attributes != null) ? (Integer) attributes.get("value")

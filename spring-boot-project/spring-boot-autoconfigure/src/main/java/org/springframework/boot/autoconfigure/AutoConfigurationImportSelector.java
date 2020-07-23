@@ -183,7 +183,11 @@ public class AutoConfigurationImportSelector
 		 */
 		configurations = filter(configurations, autoConfigurationMetadata);
 
-		// configurations 对象返回前，貌似触发一个自动装配的导入事件，事件可能包括候选的装配组件名单。
+		/**
+		 * configurations 对象返回前，貌似触发一个自动装配的导入事件，事件可能包括候选的装配组件名单。
+		 *
+		 * 自动装配事件 {@link #fireAutoConfigurationImportEvents(List, Set)}
+		 */
 		fireAutoConfigurationImportEvents(configurations, exclusions);
 
 		// 构件 `AutoConfigurationEntry` 对象信息。
@@ -355,6 +359,7 @@ public class AutoConfigurationImportSelector
 		boolean skipped = false;
 
 		/**
+		 * 1、获取 `AutoConfigurationImportFilter.class` 在所有 `spring.factories` 资源中的配置。
 		 * 【 getAutoConfigurationImportFilters】{@link #getAutoConfigurationImportFilters()}
 		 */
 		for (AutoConfigurationImportFilter filter : getAutoConfigurationImportFilters()) {
@@ -410,6 +415,10 @@ public class AutoConfigurationImportSelector
 
 	private void fireAutoConfigurationImportEvents(List<String> configurations,
 			Set<String> exclusions) {
+
+		/**
+		 *   寻找 `AutoConfigurationImportListener` 自动装配 {@link #getAutoConfigurationImportListeners()}
+		 */
 		List<AutoConfigurationImportListener> listeners = getAutoConfigurationImportListeners();
 		if (!listeners.isEmpty()) {
 			AutoConfigurationImportEvent event = new AutoConfigurationImportEvent(this,
@@ -516,6 +525,12 @@ public class AutoConfigurationImportSelector
 			this.resourceLoader = resourceLoader;
 		}
 
+		/**
+		 * 负责缓存导入 类名和 AnnotationMetadata 键值对象。
+		 *
+		 * @param annotationMetadata
+		 * @param deferredImportSelector
+		 */
 		@Override
 		public void process(AnnotationMetadata annotationMetadata,
 				DeferredImportSelector deferredImportSelector) {
@@ -533,6 +548,11 @@ public class AutoConfigurationImportSelector
 			}
 		}
 
+		/**
+		 *
+		 * 用于将 自动装配Class 排序，然后被 {@link org.springframework.context.annotation.ConfigurationClassParser }
+		 * @return
+		 */
 		@Override
 		public Iterable<Entry> selectImports() {
 			if (this.autoConfigurationEntries.isEmpty()) {
@@ -547,6 +567,9 @@ public class AutoConfigurationImportSelector
 					.collect(Collectors.toCollection(LinkedHashSet::new));
 			processedConfigurations.removeAll(allExclusions);
 
+			/**
+			 * 【核心】{@link #sortAutoConfigurations(Set, AutoConfigurationMetadata)}
+			 */
 			return sortAutoConfigurations(processedConfigurations,
 					getAutoConfigurationMetadata())
 							.stream()
@@ -566,6 +589,10 @@ public class AutoConfigurationImportSelector
 		private List<String> sortAutoConfigurations(Set<String> configurations,
 				AutoConfigurationMetadata autoConfigurationMetadata) {
 			return new AutoConfigurationSorter(getMetadataReaderFactory(),
+
+					/**
+					 * 【 getInPriorityOrder 】 {@link AutoConfigurationSorter#getInPriorityOrder(Collection)}
+					 */
 					autoConfigurationMetadata).getInPriorityOrder(configurations);
 		}
 

@@ -88,6 +88,9 @@ public abstract class AutoConfigurationPackages {
 	 * configuration class or classes.
 	 * @param registry the bean definition registry
 	 * @param packageNames the package names to set
+	 *
+	 *
+	 *    【 BasePackages 核心实现 】
 	 */
 	public static void register(BeanDefinitionRegistry registry, String... packageNames) {
 		if (registry.containsBeanDefinition(BEAN)) {
