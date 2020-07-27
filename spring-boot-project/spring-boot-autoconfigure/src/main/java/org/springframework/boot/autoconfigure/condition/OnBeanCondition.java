@@ -88,6 +88,10 @@ class OnBeanCondition extends FilteringSpringBootCondition
 		for (int i = 0; i < outcomes.length; i++) {
 			String autoConfigurationClass = autoConfigurationClasses[i];
 			if (autoConfigurationClass != null) {
+
+				/**
+				 *  获取自动装配Class 的 “ConditionalOnBean” 元信息 {@link org.springframework.boot.autoconfigure.AutoConfigurationMetadataLoader.PropertiesAutoConfigurationMetadata#getSet(String, String)}
+				 */
 				Set<String> onBeanTypes = autoConfigurationMetadata
 						.getSet(autoConfigurationClass, "ConditionalOnBean");
 				outcomes[i] = getOutcome(onBeanTypes, ConditionalOnBean.class);
@@ -119,6 +123,8 @@ class OnBeanCondition extends FilteringSpringBootCondition
 	public ConditionOutcome getMatchOutcome(ConditionContext context,
 			AnnotatedTypeMetadata metadata) {
 		ConditionMessage matchMessage = ConditionMessage.empty();
+
+		// ConditionalOnBean
 		if (metadata.isAnnotated(ConditionalOnBean.class.getName())) {
 			BeanSearchSpec spec = new BeanSearchSpec(context, metadata,
 					ConditionalOnBean.class);
@@ -132,6 +138,8 @@ class OnBeanCondition extends FilteringSpringBootCondition
 					.found("bean", "beans")
 					.items(Style.QUOTE, matchResult.getNamesOfAllMatches());
 		}
+
+		// ConditionalOnSingleCandidate
 		if (metadata.isAnnotated(ConditionalOnSingleCandidate.class.getName())) {
 			BeanSearchSpec spec = new SingleCandidateBeanSearchSpec(context, metadata,
 					ConditionalOnSingleCandidate.class);
@@ -182,6 +190,8 @@ class OnBeanCondition extends FilteringSpringBootCondition
 		MatchResult matchResult = new MatchResult();
 		boolean considerHierarchy = beans.getStrategy() != SearchStrategy.CURRENT;
 		TypeExtractor typeExtractor = beans.getTypeExtractor(context.getClassLoader());
+
+		// 计算排除 bean 名称，后续被 typeMatches 排除，核心逻辑在 【 getBeanNamesForType 】
 		List<String> beansIgnoredByType = getNamesOfBeansIgnoredByType(
 				beans.getIgnoredTypes(), typeExtractor, beanFactory, context,
 				considerHierarchy);

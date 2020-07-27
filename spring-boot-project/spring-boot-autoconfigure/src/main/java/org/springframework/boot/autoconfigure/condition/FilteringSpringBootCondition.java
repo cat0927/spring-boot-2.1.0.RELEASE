@@ -51,6 +51,14 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 
 		/**
 		 * 【 getOutcomes 】{@link OnClassCondition#getOutcomes(String[], AutoConfigurationMetadata)}
+		 *
+		 *
+		 *  OnBeanCondition、
+		 * 	OnClassCondition、
+		 * 	OnWebApplicationCondition
+		 *
+		 *  三个实现类。
+		 *
 		 */
 		ConditionOutcome[] outcomes = getOutcomes(autoConfigurationClasses,
 				autoConfigurationMetadata);
@@ -58,6 +66,8 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 		for (int i = 0; i < outcomes.length; i++) {
 			match[i] = (outcomes[i] == null || outcomes[i].isMatch());
 			if (!match[i] && outcomes[i] != null) {
+
+				// 记录log 信息。
 				logOutcome(autoConfigurationClasses[i], outcomes[i]);
 				if (report != null) {
 					report.recordConditionEvaluation(autoConfigurationClasses[i], this,

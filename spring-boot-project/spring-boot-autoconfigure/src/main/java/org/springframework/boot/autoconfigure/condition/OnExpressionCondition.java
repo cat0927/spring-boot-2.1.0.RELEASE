@@ -38,12 +38,18 @@ class OnExpressionCondition extends SpringBootCondition {
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context,
 			AnnotatedTypeMetadata metadata) {
+
+		// 获取 value 属性作为表达式内容的 expression
 		String expression = (String) metadata
 				.getAnnotationAttributes(ConditionalOnExpression.class.getName())
 				.get("value");
+
+		// 如果 expression 包含 “#{}” 则将其补充。
 		expression = wrapIfNecessary(expression);
 		ConditionMessage.Builder messageBuilder = ConditionMessage
 				.forCondition(ConditionalOnExpression.class, "(" + expression + ")");
+
+		// Spring 应用上下文关联的 Environment 进行占位符处理。
 		expression = context.getEnvironment().resolvePlaceholders(expression);
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
 		if (beanFactory != null) {

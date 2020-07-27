@@ -57,6 +57,12 @@ class AutoConfigurationSorter {
 	 * @return
 	 */
 	public List<String> getInPriorityOrder(Collection<String> classNames) {
+
+		/**
+		 * 【AutoConfigurationClasses 】{@link AutoConfigurationClasses#AutoConfigurationClasses(MetadataReaderFactory, AutoConfigurationMetadata, Collection)}
+		 *
+		 *   初始化，建立联系，排序规则由 getOrder() 方法决定。
+ 		 */
 		AutoConfigurationClasses classes = new AutoConfigurationClasses(
 				this.metadataReaderFactory, this.autoConfigurationMetadata, classNames);
 		List<String> orderedClassNames = new ArrayList<>(classNames);
@@ -115,6 +121,8 @@ class AutoConfigurationSorter {
 		AutoConfigurationClasses(MetadataReaderFactory metadataReaderFactory,
 				AutoConfigurationMetadata autoConfigurationMetadata,
 				Collection<String> classNames) {
+
+			// 【 addToClasses 】
 			addToClasses(metadataReaderFactory, autoConfigurationMetadata, classNames,
 					true);
 		}
@@ -128,6 +136,12 @@ class AutoConfigurationSorter {
 				Collection<String> classNames, boolean required) {
 			for (String className : classNames) {
 				if (!this.classes.containsKey(className)) {
+
+					/**
+					 * 与 AutoConfigurationClass 建立映射关系。调用 “AutoConfigurationClass” 构造函数。
+					 *
+					 * {@link AutoConfigurationClass#AutoConfigurationClass(String, MetadataReaderFactory, AutoConfigurationMetadata)}
+					 */
 					AutoConfigurationClass autoConfigurationClass = new AutoConfigurationClass(
 							className, metadataReaderFactory, autoConfigurationMetadata);
 					boolean available = autoConfigurationClass.isAvailable();
@@ -223,13 +237,14 @@ class AutoConfigurationSorter {
 			 * 
 			 */
 			if (wasProcessed()) {
+
+				/**
+				 * 读取自动装配类 AutoConfigureOrder 的配置值。如果不存在则使用 {@link AutoConfigureOrder.DEFAULT_ORDER}
+				 */
 				return this.autoConfigurationMetadata.getInteger(this.className,
 						"AutoConfigureOrder", AutoConfigureOrder.DEFAULT_ORDER);
 			}
 
-			/**
-			 * 读取自动装配类 AutoConfigureOrder 的配置值。如果不存在则使用 {@link AutoConfigureOrder.DEFAULT_ORDER}
-			 */
 			Map<String, Object> attributes = getAnnotationMetadata()
 					.getAnnotationAttributes(AutoConfigureOrder.class.getName());
 			return (attributes != null) ? (Integer) attributes.get("value")

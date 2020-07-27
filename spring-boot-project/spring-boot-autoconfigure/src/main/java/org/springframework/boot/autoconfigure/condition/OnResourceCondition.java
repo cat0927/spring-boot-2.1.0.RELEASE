@@ -44,11 +44,19 @@ class OnResourceCondition extends SpringBootCondition {
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context,
 			AnnotatedTypeMetadata metadata) {
+
+		/**
+		 * 获取注解 元属性信息 “ attributes ”
+		 */
 		MultiValueMap<String, Object> attributes = metadata
 				.getAllAnnotationAttributes(ConditionalOnResource.class.getName(), true);
+
+		// 获取 ResourceLoader 对象 loader。
 		ResourceLoader loader = (context.getResourceLoader() != null)
 				? context.getResourceLoader() : this.defaultResourceLoader;
 		List<String> locations = new ArrayList<>();
+
+
 		collectValues(locations, attributes.get("resources"));
 		Assert.isTrue(!locations.isEmpty(),
 				"@ConditionalOnResource annotations must specify at "
@@ -56,6 +64,13 @@ class OnResourceCondition extends SpringBootCondition {
 		List<String> missing = new ArrayList<>();
 		for (String location : locations) {
 			String resource = context.getEnvironment().resolvePlaceholders(location);
+
+			/**
+			 * 解析 @ConditionalOnResource # resources() 属性中可能存在占位符。
+			 * 	1、如果均已存在，则说明条件成立。
+			 * 	2、否则，条件不成立。
+			 */
+
 			if (!loader.getResource(resource).exists()) {
 				missing.add(location);
 			}

@@ -94,10 +94,18 @@ public abstract class AutoConfigurationPackages {
 	 */
 	public static void register(BeanDefinitionRegistry registry, String... packageNames) {
 		if (registry.containsBeanDefinition(BEAN)) {
+
+			// 获取 BeanDefinition.
 			BeanDefinition beanDefinition = registry.getBeanDefinition(BEAN);
+
+			// 获取构造器参数元信息。
 			ConstructorArgumentValues constructorArguments = beanDefinition
 					.getConstructorArgumentValues();
 			constructorArguments.addIndexedArgumentValue(0,
+
+					/**
+					 * {@link #addBasePackages(ConstructorArgumentValues, String[])}
+					 */
 					addBasePackages(constructorArguments, packageNames));
 		}
 		else {

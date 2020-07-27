@@ -37,6 +37,8 @@ public interface SpringApplicationRunListener {
 	/**
 	 * Called immediately when the run method has first started. Can be used for very
 	 * early initialization.
+	 *
+	 * Spring 应用刚启动
 	 */
 	void starting();
 
@@ -44,6 +46,8 @@ public interface SpringApplicationRunListener {
 	 * Called once the environment has been prepared, but before the
 	 * {@link ApplicationContext} has been created.
 	 * @param environment the environment
+	 *
+	 *                    【 ConfigurableEnvironment 准备妥当，允许将其调整。 】
 	 */
 	void environmentPrepared(ConfigurableEnvironment environment);
 
@@ -51,6 +55,8 @@ public interface SpringApplicationRunListener {
 	 * Called once the {@link ApplicationContext} has been created and prepared, but
 	 * before sources have been loaded.
 	 * @param context the application context
+	 *
+	 *                【 ConfigurableApplicationContext 准备妥当，运行将其调整 】
 	 */
 	void contextPrepared(ConfigurableApplicationContext context);
 
@@ -58,6 +64,8 @@ public interface SpringApplicationRunListener {
 	 * Called once the application context has been loaded but before it has been
 	 * refreshed.
 	 * @param context the application context
+	 *
+	 *                【 ConfigurableApplicationContext 已装载，但为启动 】
 	 */
 	void contextLoaded(ConfigurableApplicationContext context);
 
@@ -67,6 +75,8 @@ public interface SpringApplicationRunListener {
 	 * ApplicationRunners} have not been called.
 	 * @param context the application context.
 	 * @since 2.0.0
+	 *
+	 * 				【 ConfigurableApplicationContext 已启动，此时 Spring Bean 已初始化完成 】
 	 */
 	void started(ConfigurableApplicationContext context);
 
@@ -76,6 +86,8 @@ public interface SpringApplicationRunListener {
 	 * {@link ApplicationRunner ApplicationRunners} have been called.
 	 * @param context the application context.
 	 * @since 2.0.0
+	 *
+	 * 				【 Spring 正在运行 】
 	 */
 	void running(ConfigurableApplicationContext context);
 
@@ -85,6 +97,8 @@ public interface SpringApplicationRunListener {
 	 * the context was created
 	 * @param exception the failure
 	 * @since 2.0.0
+	 *
+	 * 			【 Spring 运行失败 】
 	 */
 	void failed(ConfigurableApplicationContext context, Throwable exception);
 

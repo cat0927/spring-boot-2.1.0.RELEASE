@@ -162,7 +162,9 @@ public class AutoConfigurationImportSelector
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
 
 		/**
-		 * 校验 {@link #checkExcludedClasses(List, Set)}
+		 *  检查排除类名集合是否合法,{@link #checkExcludedClasses(List, Set)}
+		 *
+		 *  验证失败，抛 “IllegalStateException” 异常。
 		 */
 		checkExcludedClasses(configurations, exclusions);
 
@@ -361,6 +363,12 @@ public class AutoConfigurationImportSelector
 		/**
 		 * 1、获取 `AutoConfigurationImportFilter.class` 在所有 `spring.factories` 资源中的配置。
 		 * 【 getAutoConfigurationImportFilters】{@link #getAutoConfigurationImportFilters()}
+		 *
+		 *   OnBeanCondition、
+		 *   OnClassCondition、
+		 *   OnWebApplicationCondition
+		 *   	这三个是 “AutoConfigurationImportFilter” 实现类。
+		 *
 		 */
 		for (AutoConfigurationImportFilter filter : getAutoConfigurationImportFilters()) {
 			invokeAwareMethods(filter);
@@ -418,6 +426,8 @@ public class AutoConfigurationImportSelector
 
 		/**
 		 *   寻找 `AutoConfigurationImportListener` 自动装配 {@link #getAutoConfigurationImportListeners()}
+		 *
+		 *   listeners = ConditionEvaluationReportAutoConfigurationImportListener
 		 */
 		List<AutoConfigurationImportListener> listeners = getAutoConfigurationImportListeners();
 		if (!listeners.isEmpty()) {
@@ -425,6 +435,10 @@ public class AutoConfigurationImportSelector
 					configurations, exclusions);
 			for (AutoConfigurationImportListener listener : listeners) {
 				invokeAwareMethods(listener);
+
+				/**
+				 * {@link org.springframework.boot.autoconfigure.condition.ConditionEvaluationReportAutoConfigurationImportListener#onAutoConfigurationImportEvent(AutoConfigurationImportEvent)}
+				 */
 				listener.onAutoConfigurationImportEvent(event);
 			}
 		}
@@ -540,6 +554,10 @@ public class AutoConfigurationImportSelector
 							AutoConfigurationImportSelector.class.getSimpleName(),
 							deferredImportSelector.getClass().getName()));
 			AutoConfigurationEntry autoConfigurationEntry = ((AutoConfigurationImportSelector) deferredImportSelector)
+
+					/**
+					 * 【 getAutoConfigurationEntry 】{@link #getAutoConfigurationEntry(AutoConfigurationMetadata, AnnotationMetadata)}
+					 */
 					.getAutoConfigurationEntry(getAutoConfigurationMetadata(),
 							annotationMetadata);
 			this.autoConfigurationEntries.add(autoConfigurationEntry);

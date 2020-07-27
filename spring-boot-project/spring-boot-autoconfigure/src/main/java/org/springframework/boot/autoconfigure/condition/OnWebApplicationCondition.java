@@ -95,8 +95,14 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context,
 			AnnotatedTypeMetadata metadata) {
+
+		/**
+		 * required = true, 说明当前 Configuration Class 添加了 “@ConditionOnWebApplication” 的声明。
+		 */
 		boolean required = metadata
 				.isAnnotated(ConditionalOnWebApplication.class.getName());
+
+		// 判断当前 Spring 应用是否是 Web 应用。
 		ConditionOutcome outcome = isWebApplication(context, metadata, required);
 		if (required && !outcome.isMatch()) {
 			return ConditionOutcome.noMatch(outcome.getConditionMessage());
@@ -107,10 +113,20 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		return ConditionOutcome.match(outcome.getConditionMessage());
 	}
 
+	/**
+	 * 判断当前 Spring 应用是否是 Web 应用。
+	 *
+	 */
 	private ConditionOutcome isWebApplication(ConditionContext context,
 			AnnotatedTypeMetadata metadata, boolean required) {
+
+		/**
+		 * 推断类型 {@link #deduceType(AnnotatedTypeMetadata)}
+		 */
 		switch (deduceType(metadata)) {
 		case SERVLET:
+
+			// 【 isServletWebApplication 】
 			return isServletWebApplication(context);
 		case REACTIVE:
 			return isReactiveWebApplication(context);
@@ -140,21 +156,29 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 
 	private ConditionOutcome isServletWebApplication(ConditionContext context) {
 		ConditionMessage.Builder message = ConditionMessage.forCondition("");
+
+		// 是否存在于当前 Class Path 中，如果不存在，则说明当前应用并非 Servlet Web 应用场景
 		if (!ClassNameFilter.isPresent(SERVLET_WEB_APPLICATION_CLASS,
 				context.getClassLoader())) {
 			return ConditionOutcome.noMatch(
 					message.didNotFind("servlet web application classes").atAll());
 		}
+
+		// 是否存在 “scope” 为session 的 bean。如果存在，说明当前应用属于 Servlet Web 应用。
 		if (context.getBeanFactory() != null) {
 			String[] scopes = context.getBeanFactory().getRegisteredScopeNames();
 			if (ObjectUtils.containsElement(scopes, "session")) {
 				return ConditionOutcome.match(message.foundExactly("'session' scope"));
 			}
 		}
+
+		// 判断 应用上下文所关联的 Environment 是否为 “ConfigurableWebEnvironment”
 		if (context.getEnvironment() instanceof ConfigurableWebEnvironment) {
 			return ConditionOutcome
 					.match(message.foundExactly("ConfigurableWebEnvironment"));
 		}
+
+		// 当 Spring 应用上下文属于 “WebApplicationContext”
 		if (context.getResourceLoader() instanceof WebApplicationContext) {
 			return ConditionOutcome.match(message.foundExactly("WebApplicationContext"));
 		}
@@ -180,6 +204,9 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 				.noMatch(message.because("not a reactive web application"));
 	}
 
+	/**
+	 * 推断 应用类型 Type，如果 type() 指定类型，则使用指定类型，否则采用 “Type.ANY”
+	 */
 	private Type deduceType(AnnotatedTypeMetadata metadata) {
 		Map<String, Object> attributes = metadata
 				.getAnnotationAttributes(ConditionalOnWebApplication.class.getName());
