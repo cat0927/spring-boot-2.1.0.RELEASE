@@ -98,6 +98,8 @@ import org.springframework.util.StringUtils;
  * @author Andy Wilkinson
  * @author Eddú Meléndez
  * @author Madhura Bhave
+ *
+ *   【负责 SpringBoot 应用配置属性文件的加载 】
  */
 public class ConfigFileApplicationListener
 		implements EnvironmentPostProcessor, SmartApplicationListener, Ordered {

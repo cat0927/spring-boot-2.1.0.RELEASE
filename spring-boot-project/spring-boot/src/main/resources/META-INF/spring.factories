@@ -18,6 +18,10 @@ org.springframework.boot.context.ContextIdApplicationContextInitializer,\
 org.springframework.boot.context.config.DelegatingApplicationContextInitializer,\
 org.springframework.boot.web.context.ServerPortInfoApplicationContextInitializer
 
+
+##############
+# ConfigFileApplicationListener 负责 SpringBoot 应用配置属性文件的加载
+##############
 # Application Listeners
 org.springframework.context.ApplicationListener=\
 org.springframework.boot.ClearCachesApplicationListener,\

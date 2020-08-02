@@ -337,16 +337,32 @@ public class SpringApplication {
 		SpringApplicationRunListeners listeners = getRunListeners(args);
 		listeners.starting();
 		try {
+
+			/**
+			 * 装配 ApplicationArguments.{@link DefaultApplicationArguments#DefaultApplicationArguments(String[])}
+			 */
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(
 					args);
+
+			/**
+			 *  {@link #prepareEnvironment(SpringApplicationRunListeners, ApplicationArguments)}
+			 */
 			ConfigurableEnvironment environment = prepareEnvironment(listeners,
 					applicationArguments);
 			configureIgnoreBeanInfo(environment);
 			Banner printedBanner = printBanner(environment);
+
+			/**
+			 *  根据传参，推断WEB 应用类型。
+			 */
 			context = createApplicationContext();
 			exceptionReporters = getSpringFactoriesInstances(
 					SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
+
+			/**
+			 *  【设置应用上下文】 {@link #prepareContext(ConfigurableApplicationContext, ConfigurableEnvironment, SpringApplicationRunListeners, ApplicationArguments, Banner)}
+			 */
 			prepareContext(context, environment, listeners, applicationArguments,
 					printedBanner);
 			refreshContext(context);
@@ -378,6 +394,10 @@ public class SpringApplication {
 			SpringApplicationRunListeners listeners,
 			ApplicationArguments applicationArguments) {
 		// Create and configure the environment
+
+		/**
+		 *  根据 webApplicationType 类型获取不同的 ConfigurableEnvironment {@link #getOrCreateEnvironment()}
+		 */
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 		listeners.environmentPrepared(environment);
@@ -395,18 +415,39 @@ public class SpringApplication {
 		case SERVLET:
 			return StandardServletEnvironment.class;
 		case REACTIVE:
+			// Spring Boot 2.0 新增类型
 			return StandardReactiveWebEnvironment.class;
 		default:
 			return StandardEnvironment.class;
 		}
 	}
 
+	/**
+	 * 设置应用上下文
+	 * @param context
+	 * @param environment
+	 * @param listeners
+	 * @param applicationArguments
+	 * @param printedBanner
+	 */
 	private void prepareContext(ConfigurableApplicationContext context,
 			ConfigurableEnvironment environment, SpringApplicationRunListeners listeners,
 			ApplicationArguments applicationArguments, Banner printedBanner) {
 		context.setEnvironment(environment);
+
+		/**
+		 * Spring 应用上下文后置处理 {@link #postProcessApplicationContext(ConfigurableApplicationContext)}
+		 */
 		postProcessApplicationContext(context);
+
+		/**
+		 * 运用 Spring 应用上下文初始化器 {@link #applyInitializers(ConfigurableApplicationContext)}
+		 */
 		applyInitializers(context);
+
+		/**
+		 * 执行 SpringApplicationRunListener # contextPrepared 方法回调。
+		 */
 		listeners.contextPrepared(context);
 		if (this.logStartupInfo) {
 			logStartupInfo(context.getParent() == null);
@@ -414,6 +455,10 @@ public class SpringApplication {
 		}
 		// Add boot specific singleton beans
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+
+		/**
+		 * 1、注册 SpringBootBean 【 registerSingleton 】
+		 */
 		beanFactory.registerSingleton("springApplicationArguments", applicationArguments);
 		if (printedBanner != null) {
 			beanFactory.registerSingleton("springBootBanner", printedBanner);
@@ -423,9 +468,21 @@ public class SpringApplication {
 					.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
 		// Load the sources
+
+		/**
+		 * 2、合并 Spring 应用上下文配置源 {@link #getAllSources()}
+		 */
 		Set<Object> sources = getAllSources();
 		Assert.notEmpty(sources, "Sources must not be empty");
+
+		/**
+		 * 3、加载 Spring 应用上下文配置源 {@link #load(ApplicationContext, Object[])}
+		 */
 		load(context, sources.toArray(new Object[0]));
+
+		/**
+		 * 4、执行回调。
+		 */
 		listeners.contextLoaded(context);
 	}
 
@@ -460,7 +517,7 @@ public class SpringApplication {
 		 *   1、getSpringFactoriesInstances 获取 “SpringApplicationRunListener” 实现类
 		 *   	{@link org.springframework.boot.context.event.EventPublishingRunListener} 作为SpringBoot 唯一内建实现。完全符合上述构造器参数签名。
 		 *
-		 *
+		 *	  {@link #getSpringFactoriesInstances(Class, Class[], Object...)}
 		 */
 		return new SpringApplicationRunListeners(logger, getSpringFactoriesInstances(
 				SpringApplicationRunListener.class, types, this, args));
@@ -649,6 +706,8 @@ public class SpringApplication {
 	 * class before falling back to a suitable default.
 	 * @return the application context (not yet refreshed)
 	 * @see #setApplicationContextClass(Class)
+	 *
+	 *  根据构造阶段推断，WEB 应用类型，进行 ConfigurableApplicationContext 的创建
 	 */
 	protected ConfigurableApplicationContext createApplicationContext() {
 		Class<?> contextClass = this.applicationContextClass;
@@ -679,6 +738,8 @@ public class SpringApplication {
 	 * Apply any relevant post processing the {@link ApplicationContext}. Subclasses can
 	 * apply additional processing as required.
 	 * @param context the application context
+	 *
+	 *                【 Spring 应用上下文后置处理 】
 	 */
 	protected void postProcessApplicationContext(ConfigurableApplicationContext context) {
 		if (this.beanNameGenerator != null) {
@@ -686,6 +747,10 @@ public class SpringApplication {
 					AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR,
 					this.beanNameGenerator);
 		}
+
+		/**
+		 * 默认所关联 ResourceLoader、ClassLoader。
+		 */
 		if (this.resourceLoader != null) {
 			if (context instanceof GenericApplicationContext) {
 				((GenericApplicationContext) context)
@@ -710,6 +775,10 @@ public class SpringApplication {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void applyInitializers(ConfigurableApplicationContext context) {
+
+		/**
+		 *  获取 ApplicationContextInitializerSet {@link #getInitializers()}
+		 */
 		for (ApplicationContextInitializer initializer : getInitializers()) {
 			Class<?> requiredType = GenericTypeResolver.resolveTypeArgument(
 					initializer.getClass(), ApplicationContextInitializer.class);
@@ -782,6 +851,10 @@ public class SpringApplication {
 		if (this.environment != null) {
 			loader.setEnvironment(this.environment);
 		}
+
+		/**
+		 * 【 load 】{@link BeanDefinitionLoader#load()}
+		 */
 		loader.load();
 	}
 
@@ -1214,9 +1287,13 @@ public class SpringApplication {
 	 */
 	public Set<Object> getAllSources() {
 		Set<Object> allSources = new LinkedHashSet<>();
+
+		// 来自 SpringApplication 构造器参数
 		if (!CollectionUtils.isEmpty(this.primarySources)) {
 			allSources.addAll(this.primarySources);
 		}
+
+		// 来自 SetSources(Set<String>)
 		if (!CollectionUtils.isEmpty(this.sources)) {
 			allSources.addAll(this.sources);
 		}
@@ -1393,6 +1470,12 @@ public class SpringApplication {
 		}
 	}
 
+	/**
+	 * 去重和排序
+	 * @param elements
+	 * @param <E>
+	 * @return
+	 */
 	private static <E> Set<E> asUnmodifiableOrderedSet(Collection<E> elements) {
 		List<E> list = new ArrayList<>();
 		list.addAll(elements);

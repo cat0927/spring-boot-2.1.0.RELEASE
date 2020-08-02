@@ -39,6 +39,8 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 
 	public DefaultApplicationArguments(String[] args) {
 		Assert.notNull(args, "Args must not be null");
+
+		// 【 Source 】
 		this.source = new Source(args);
 		this.args = args;
 	}
@@ -70,6 +72,15 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 		return this.source.getNonOptionArgs();
 	}
 
+	/**
+	 * SimpleCommandLinePropertySource 将命令行参数，分为两组，
+	 * 	一为： “选项参数”、
+	 * 	二为：“非选项参数”、
+	 *
+	 * 	例如：--name=张三
+	 *
+	 * 	解析为 name:张三
+	 */
 	private static class Source extends SimpleCommandLinePropertySource {
 
 		Source(String[] args) {

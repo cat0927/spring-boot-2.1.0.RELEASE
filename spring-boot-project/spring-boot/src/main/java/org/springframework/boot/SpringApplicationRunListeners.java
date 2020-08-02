@@ -55,6 +55,7 @@ class SpringApplicationRunListeners {
 		}
 	}
 
+
 	public void contextPrepared(ConfigurableApplicationContext context) {
 		for (SpringApplicationRunListener listener : this.listeners) {
 			listener.contextPrepared(context);

@@ -39,6 +39,7 @@ public interface SpringApplicationRunListener {
 	 * early initialization.
 	 *
 	 * Spring 应用刚启动
+	 *
 	 */
 	void starting();
 
@@ -48,6 +49,8 @@ public interface SpringApplicationRunListener {
 	 * @param environment the environment
 	 *
 	 *                    【 ConfigurableEnvironment 准备妥当，允许将其调整。 】
+	 *
+	 *                    【 refresh() 调用之前 】
 	 */
 	void environmentPrepared(ConfigurableEnvironment environment);
 
@@ -56,7 +59,13 @@ public interface SpringApplicationRunListener {
 	 * before sources have been loaded.
 	 * @param context the application context
 	 *
+	 *
 	 *                【 ConfigurableApplicationContext 准备妥当，运行将其调整 】
+	 *                1、该方法是在 `AbstractApplicationContext # refresh()` 方法之前执行。
+	 *
+	 *
+	 *                AbstractApplicationContext 是 ConfigurableApplicationContext 接口的实现类。
+	 *
 	 */
 	void contextPrepared(ConfigurableApplicationContext context);
 
@@ -66,6 +75,8 @@ public interface SpringApplicationRunListener {
 	 * @param context the application context
 	 *
 	 *                【 ConfigurableApplicationContext 已装载，但为启动 】
+	 *
+	 *                【 refresh() 调用之前 】
 	 */
 	void contextLoaded(ConfigurableApplicationContext context);
 
@@ -77,6 +88,8 @@ public interface SpringApplicationRunListener {
 	 * @since 2.0.0
 	 *
 	 * 				【 ConfigurableApplicationContext 已启动，此时 Spring Bean 已初始化完成 】
+	 *
+	 * 			    【 refresh() 调用之前 】
 	 */
 	void started(ConfigurableApplicationContext context);
 
@@ -88,6 +101,8 @@ public interface SpringApplicationRunListener {
 	 * @since 2.0.0
 	 *
 	 * 				【 Spring 正在运行 】
+	 *
+	 * 		       【 refresh() 调用之后 】
 	 */
 	void running(ConfigurableApplicationContext context);
 
@@ -99,6 +114,8 @@ public interface SpringApplicationRunListener {
 	 * @since 2.0.0
 	 *
 	 * 			【 Spring 运行失败 】
+	 *
+	 * 			【 refresh() 调用之后 】
 	 */
 	void failed(ConfigurableApplicationContext context, Throwable exception);
 

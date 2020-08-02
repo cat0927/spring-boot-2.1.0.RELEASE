@@ -21,7 +21,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ApplicationEventMulticaster;
@@ -65,6 +67,10 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 		 */
 		this.initialMulticaster = new SimpleApplicationEventMulticaster();
 		for (ApplicationListener<?> listener : application.getListeners()) {
+
+			/**
+			 * 添加监听器。
+			 */
 			this.initialMulticaster.addApplicationListener(listener);
 		}
 	}
@@ -76,6 +82,7 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 
 	@Override
 	public void starting() {
+		// 【 广播，启动事件 】
 		this.initialMulticaster.multicastEvent(
 				new ApplicationStartingEvent(this.application, this.args));
 	}
@@ -88,6 +95,14 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 
 	@Override
 	public void contextPrepared(ConfigurableApplicationContext context) {
+
+		/**
+		 *
+		 * 调用, 广播事件 {@link org.springframework.context.event.SimpleApplicationEventMulticaster#multicastEvent(ApplicationEvent)}
+		 *
+		 * 	是 {@link org.springframework.context.event.ApplicationEventMulticaster} 实现类。
+		 *
+		 */
 		this.initialMulticaster.multicastEvent(new ApplicationContextInitializedEvent(
 				this.application, this.args, context));
 	}
@@ -96,8 +111,16 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	public void contextLoaded(ConfigurableApplicationContext context) {
 		for (ApplicationListener<?> listener : this.application.getListeners()) {
 			if (listener instanceof ApplicationContextAware) {
+
+				/**
+				 *  将 SpringApplication 所关联的 ApplicationListener，添加至 ConfigurableApplicationContext 中。
+				 *
+				 *  {@link org.springframework.context.event.EventListenerMethodProcessor#setApplicationContext(ApplicationContext)}
+				 */
 				((ApplicationContextAware) listener).setApplicationContext(context);
 			}
+
+			// 添加监听器。
 			context.addApplicationListener(listener);
 		}
 		this.initialMulticaster.multicastEvent(
@@ -123,6 +146,10 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 		if (context != null && context.isActive()) {
 			// Listeners have been registered to the application context so we should
 			// use it at this point if we can
+
+			/**
+			 * 广播失败事件，AbstractApplicationContext -》 SimpleApplicationEventMulticaster# multicastEvent(event)
+			 */
 			context.publishEvent(event);
 		}
 		else {
