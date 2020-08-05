@@ -321,16 +321,24 @@ public class SpringApplication {
 	 * @return a running {@link ApplicationContext}
 	 *
 	 *  【 运行阶段 】
-	 *
+	 *  【 核心逻辑 】
 	 */
 	public ConfigurableApplicationContext run(String... args) {
+
+		// 1、创建启动计时类
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
+
+		// 2、初始化应用上下文和异常报告集合
 		ConfigurableApplicationContext context = null;
 		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
+
+		// 3、设置系统属性 `java.awt.headless` 的值，默认值为：true
 		configureHeadlessProperty();
 
 		/**
+		 *  4、创建所有 Spring 运行监听器并发布应用启动事件
+		 *
 		 * 【 getRunListeners 】{@link #getRunListeners(String[])}
 		 *   获取 “SpringApplicationRunListener” 实现类 “EventPublishingRunListener” 类。
 		 */
@@ -339,40 +347,76 @@ public class SpringApplication {
 		try {
 
 			/**
+			 *  5、初始化默认应用参数类
+			 *
 			 * 装配 ApplicationArguments.{@link DefaultApplicationArguments#DefaultApplicationArguments(String[])}
 			 */
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(
 					args);
 
 			/**
+			 *  6、根据运行监听器和应用参数来准备 Spring 环境
+			 *
 			 *  {@link #prepareEnvironment(SpringApplicationRunListeners, ApplicationArguments)}
 			 */
 			ConfigurableEnvironment environment = prepareEnvironment(listeners,
 					applicationArguments);
 			configureIgnoreBeanInfo(environment);
+
+			// 7、创建 Banner 打印类
 			Banner printedBanner = printBanner(environment);
 
 			/**
-			 *  根据传参，推断WEB 应用类型。
+			 * 8、创建应用上下文
+			 *
+			 *  根据传参，推断WEB 应用类型。返回的 `ConfigurableApplicationContext`
 			 */
 			context = createApplicationContext();
+
+			// 9、准备异常报告器
 			exceptionReporters = getSpringFactoriesInstances(
 					SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
 
 			/**
+			 *  10、准备应用上下文
+			 *
 			 *  【设置应用上下文】 {@link #prepareContext(ConfigurableApplicationContext, ConfigurableEnvironment, SpringApplicationRunListeners, ApplicationArguments, Banner)}
 			 */
 			prepareContext(context, environment, listeners, applicationArguments,
 					printedBanner);
+
+			/**
+			 * 11、刷新应用上下文
+			 *
+			 * Spring 应用上下文启动阶段 {@link #refreshContext(ConfigurableApplicationContext)}
+			 */
 			refreshContext(context);
+
+			/**
+			 *  12、应用上下文刷新后置处理
+			 *
+			 *  【 由开发人员扩展 】  Sprig 应用上下文启动后阶段 {@link #afterRefresh(ConfigurableApplicationContext, ApplicationArguments)}
+			 */
 			afterRefresh(context, applicationArguments);
+
+			// 13、停止计时监控类
 			stopWatch.stop();
+
+			//  14、输出日志记录执行主类名、时间信息
 			if (this.logStartupInfo) {
 				new StartupInfoLogger(this.mainApplicationClass)
 						.logStarted(getApplicationLog(), stopWatch);
 			}
+
+			/**
+			 *  15、发布应用上下文启动完成事件
+			 *
+			 * 广播 SpringBoot 事件 ApplicationStartedEvent {@link SpringApplicationRunListeners#started(ConfigurableApplicationContext)}
+			 */
 			listeners.started(context);
+
+			// 16、执行所有 Runner 运行器
 			callRunners(context, applicationArguments);
 		}
 		catch (Throwable ex) {
@@ -381,12 +425,20 @@ public class SpringApplication {
 		}
 
 		try {
+
+			/**
+			 *  17、发布应用上下文就绪事件
+			 *
+			 *  {@link SpringApplicationRunListeners#running(ConfigurableApplicationContext)}
+			 */
 			listeners.running(context);
 		}
 		catch (Throwable ex) {
 			handleRunFailure(context, ex, exceptionReporters, null);
 			throw new IllegalStateException(ex);
 		}
+
+		// 18、返回应用上下文
 		return context;
 	}
 
@@ -396,9 +448,13 @@ public class SpringApplication {
 		// Create and configure the environment
 
 		/**
-		 *  根据 webApplicationType 类型获取不同的 ConfigurableEnvironment {@link #getOrCreateEnvironment()}
+		 *  6.1) 获取（或者创建）应用环境。 根据 webApplicationType 类型获取不同的 ConfigurableEnvironment {@link #getOrCreateEnvironment()}
 		 */
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
+
+		/**
+		 * 6.2) 配置应用环境  applicationArguments.getSourceArgs() 是 "new DefaultApplicationArguments(args)" 入参。
+		 */
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 		listeners.environmentPrepared(environment);
 		bindToSpringApplication(environment);
@@ -410,6 +466,7 @@ public class SpringApplication {
 		return environment;
 	}
 
+	// 根据容器类型，返回
 	private Class<? extends StandardEnvironment> deduceEnvironmentClass() {
 		switch (this.webApplicationType) {
 		case SERVLET:
@@ -433,22 +490,28 @@ public class SpringApplication {
 	private void prepareContext(ConfigurableApplicationContext context,
 			ConfigurableEnvironment environment, SpringApplicationRunListeners listeners,
 			ApplicationArguments applicationArguments, Banner printedBanner) {
+
+		// 10.1） 绑定环境到上下文
 		context.setEnvironment(environment);
 
 		/**
-		 * Spring 应用上下文后置处理 {@link #postProcessApplicationContext(ConfigurableApplicationContext)}
+		 * 10.2) Spring 应用上下文后置处理 {@link #postProcessApplicationContext(ConfigurableApplicationContext)}
 		 */
 		postProcessApplicationContext(context);
 
 		/**
-		 * 运用 Spring 应用上下文初始化器 {@link #applyInitializers(ConfigurableApplicationContext)}
+		 * 10.3） 运用 Spring 应用上下文初始化器 {@link #applyInitializers(ConfigurableApplicationContext)}
 		 */
 		applyInitializers(context);
 
 		/**
-		 * 执行 SpringApplicationRunListener # contextPrepared 方法回调。
+		 * 10.4）触发所有 SpringApplicationRunListener 监听器的 contextPrepared
+		 *
+		 *   执行 SpringApplicationRunListener # contextPrepared 方法回调。
 		 */
 		listeners.contextPrepared(context);
+
+		// 10.5）记录启动日志
 		if (this.logStartupInfo) {
 			logStartupInfo(context.getParent() == null);
 			logStartupProfileInfo(context);
@@ -457,6 +520,9 @@ public class SpringApplication {
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
 
 		/**
+		 *
+		 *  10.6）注册两个特殊的单例 bean
+		 *
 		 * 1、注册 SpringBootBean 【 registerSingleton 】
 		 */
 		beanFactory.registerSingleton("springApplicationArguments", applicationArguments);
@@ -470,6 +536,9 @@ public class SpringApplication {
 		// Load the sources
 
 		/**
+		 *
+		 *  10.7）加载所有资源
+		 *
 		 * 2、合并 Spring 应用上下文配置源 {@link #getAllSources()}
 		 */
 		Set<Object> sources = getAllSources();
@@ -481,15 +550,23 @@ public class SpringApplication {
 		load(context, sources.toArray(new Object[0]));
 
 		/**
+		 *
+		 *  10.8）触发所有 SpringApplicationRunListener 监听器的 contextLoaded 事件方法
+		 *
 		 * 4、执行回调。
 		 */
 		listeners.contextLoaded(context);
 	}
 
 	private void refreshContext(ConfigurableApplicationContext context) {
+		/**
+		 * 【 refresh 】调用 Spring {@link AbstractApplicationContext#refresh()}
+		 */
 		refresh(context);
 		if (this.registerShutdownHook) {
 			try {
+
+				// 注册 shutdownHook() 线程。属于 JVM shutdown hook 机制。
 				context.registerShutdownHook();
 			}
 			catch (AccessControlException ex) {
@@ -533,6 +610,12 @@ public class SpringApplication {
 		// Use names and ensure unique to protect against duplicates
 
 		/**
+		 *
+		 * 1、SpringFactoryLoader.loadFactoryNames(SpringApplicationRunListener.class)
+		 *
+		 *  {@link  org.springframework.boot.context.event.EventPublishingRunListener
+		 *
+		 *
 		 *
 		 * SpringFactoryLoader.loadFactoryNames(ApplicationContextInitializer.class)
 		 *
@@ -910,9 +993,16 @@ public class SpringApplication {
 	/**
 	 * Refresh the underlying {@link ApplicationContext}.
 	 * @param applicationContext the application context to refresh
+	 *
+	 *   设计过于复杂，
+	 *     1、createApplicationContext() 返回  `ConfigurableApplicationContext` 类型
+	 *     2、ApplicationContext 是   ConfigurableApplicationContext 父接口。
+	 *     3、ApplicationContext 并没有 `refresh() 的实现`
+	 *
 	 */
 	protected void refresh(ApplicationContext applicationContext) {
 		Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
+		// AbstractApplicationContext# refresh()
 		((AbstractApplicationContext) applicationContext).refresh();
 	}
 
@@ -958,6 +1048,9 @@ public class SpringApplication {
 		}
 	}
 
+	/**
+	 * 异常处理
+	 */
 	private void handleRunFailure(ConfigurableApplicationContext context,
 			Throwable exception,
 			Collection<SpringBootExceptionReporter> exceptionReporters,
@@ -986,6 +1079,10 @@ public class SpringApplication {
 			Throwable failure) {
 		try {
 			for (SpringBootExceptionReporter reporter : exceptionReporters) {
+
+				/**
+				 *  {@link org.springframework.boot.diagnostics.FailureAnalyzers#reportException(Throwable)} 
+				 */
 				if (reporter.reportException(failure)) {
 					registerLoggedException(failure);
 					return;

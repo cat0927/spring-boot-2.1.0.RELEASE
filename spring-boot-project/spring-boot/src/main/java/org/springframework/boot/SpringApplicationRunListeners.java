@@ -64,18 +64,30 @@ class SpringApplicationRunListeners {
 
 	public void contextLoaded(ConfigurableApplicationContext context) {
 		for (SpringApplicationRunListener listener : this.listeners) {
+
+			/**
+			 * {@link org.springframework.boot.context.event.EventPublishingRunListener#contextLoaded(ConfigurableApplicationContext)}
+			 */
 			listener.contextLoaded(context);
 		}
 	}
 
 	public void started(ConfigurableApplicationContext context) {
 		for (SpringApplicationRunListener listener : this.listeners) {
+
+			/**
+			 * {@link org.springframework.boot.context.event.EventPublishingRunListener#started(ConfigurableApplicationContext)}
+			 */
 			listener.started(context);
 		}
 	}
 
 	public void running(ConfigurableApplicationContext context) {
 		for (SpringApplicationRunListener listener : this.listeners) {
+
+			/**
+			 *  {@link org.springframework.boot.context.event.EventPublishingRunListener#running(ConfigurableApplicationContext)}
+			 */
 			listener.running(context);
 		}
 	}

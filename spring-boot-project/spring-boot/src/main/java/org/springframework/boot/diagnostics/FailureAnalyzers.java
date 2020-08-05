@@ -46,6 +46,9 @@ import org.springframework.util.ReflectionUtils;
  * @author Andy Wilkinson
  * @author Phillip Webb
  * @author Stephane Nicoll
+ *
+ *
+ *   【 故障分析器 】
  */
 final class FailureAnalyzers implements SpringBootExceptionReporter {
 
