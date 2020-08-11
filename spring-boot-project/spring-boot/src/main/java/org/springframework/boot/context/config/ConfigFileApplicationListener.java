@@ -159,6 +159,11 @@ public class ConfigFileApplicationListener
 				|| ApplicationPreparedEvent.class.isAssignableFrom(eventType);
 	}
 
+	/**
+	 * 收到事件请求后执行这个方法
+	 * 配置文件监听器只监听环境配置完成事件和上下文加载完成事件
+	 * @param event
+	 */
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ApplicationEnvironmentPreparedEvent) {
@@ -170,12 +175,21 @@ public class ConfigFileApplicationListener
 		}
 	}
 
+	/**
+	 * 获取所有环境配置处理器，并根据事件所给出的环境执行加载文件配置任务
+	 **/
 	private void onApplicationEnvironmentPreparedEvent(
 			ApplicationEnvironmentPreparedEvent event) {
+
+		/**
+		 * 使用 "SpringFactoriesLoader" 方式，获取所有环境配置处理器。
+		 */
 		List<EnvironmentPostProcessor> postProcessors = loadPostProcessors();
 		postProcessors.add(this);
 		AnnotationAwareOrderComparator.sort(postProcessors);
 		for (EnvironmentPostProcessor postProcessor : postProcessors) {
+
+			// 【 postProcessEnvironment 】
 			postProcessor.postProcessEnvironment(event.getEnvironment(),
 					event.getSpringApplication());
 		}
@@ -186,6 +200,10 @@ public class ConfigFileApplicationListener
 				getClass().getClassLoader());
 	}
 
+	/**
+	 * 环境配置方法
+	 * 首先加载应用配置文件 application.properties 包括已激活的profiles的配置文件
+	 */
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {

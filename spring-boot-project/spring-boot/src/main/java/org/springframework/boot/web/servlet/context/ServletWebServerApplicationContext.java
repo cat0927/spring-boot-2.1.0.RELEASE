@@ -173,12 +173,16 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 
 	private void createWebServer() {
 		WebServer webServer = this.webServer;
+
+		// 1. 获得ServletContext
 		ServletContext servletContext = getServletContext();
 		if (webServer == null && servletContext == null) {
 			ServletWebServerFactory factory = getWebServerFactory();
 			this.webServer = factory.getWebServer(getSelfInitializer());
 		}
 		else if (servletContext != null) {
+
+			// 3. 内置Servlet容器已经初始化但是ServletContext还没初始化,则进行初始化.一般不会到这里
 			try {
 				getSelfInitializer().onStartup(servletContext);
 			}
@@ -187,6 +191,8 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 						ex);
 			}
 		}
+
+		// 4. 初始化PropertySources
 		initPropertySources();
 	}
 

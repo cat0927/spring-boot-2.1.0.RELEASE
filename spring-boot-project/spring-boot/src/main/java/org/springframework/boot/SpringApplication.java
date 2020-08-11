@@ -279,14 +279,19 @@ public class SpringApplication {
 
 		/**
 		 * 2、加载 Spring 应用上下文初始化器。{@link #getSpringFactoriesInstances(Class, Class[], Object...)}
-		 *  覆盖性更新 {@link #setInitializers(Collection)}
+		 *
+		 *   2.1、覆盖性更新 {@link #setInitializers(Collection)} 放入全局变量 “initializers”
 		 */
 		setInitializers((Collection) getSpringFactoriesInstances(
 				ApplicationContextInitializer.class));
 
 		/**
 		 * 3、加载 Spring 应用事件监听
-		 * 	getSpringFactoriesInstances 获取 “ApplicationListener” 实现类 {@link org.springframework.boot.autoconfigure.BackgroundPreinitializer}
+		 * 	getSpringFactoriesInstances 获取 “ApplicationListener”
+		 *
+		 * 	 通过 “SpringFactoriesLoader.loadFactoryNames” 的方式，获取,指定bean 工厂创建类的实例。
+		 *
+		 * 	 3.1、放入全局变量 “listeners”
 		 *
 		 */
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
@@ -616,8 +621,8 @@ public class SpringApplication {
 		 *  {@link  org.springframework.boot.context.event.EventPublishingRunListener
 		 *
 		 *
-		 *
-		 * SpringFactoryLoader.loadFactoryNames(ApplicationContextInitializer.class)
+		 *	【 SpringApplication 构造器 】加载应用上下文。
+		 * 2、SpringFactoryLoader.loadFactoryNames(ApplicationContextInitializer.class)
 		 *
 		 *  {@link org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener}
 		 *  {@link org.springframework.boot.autoconfigure.SharedMetadataReaderFactoryContextInitializer}
@@ -796,8 +801,10 @@ public class SpringApplication {
 		Class<?> contextClass = this.applicationContextClass;
 		if (contextClass == null) {
 			try {
+				// 判断 webApplicationType 类型
 				switch (this.webApplicationType) {
 				case SERVLET:
+					// 反射
 					contextClass = Class.forName(DEFAULT_SERVLET_WEB_CONTEXT_CLASS);
 					break;
 				case REACTIVE:

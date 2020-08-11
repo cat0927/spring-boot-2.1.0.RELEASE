@@ -105,11 +105,17 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		// 判断当前 Spring 应用是否是 Web 应用。
 		ConditionOutcome outcome = isWebApplication(context, metadata, required);
 		if (required && !outcome.isMatch()) {
+
+			// 3. 如果有 “@ConditionalOnWebApplication” 注解,但是不是 WebApplication环境,则返回不匹配
 			return ConditionOutcome.noMatch(outcome.getConditionMessage());
 		}
 		if (!required && outcome.isMatch()) {
+
+			// 4. 如果没有被 “@ConditionalOnWebApplication” 注解,但是是 WebApplication环境,则返回不匹配
 			return ConditionOutcome.noMatch(outcome.getConditionMessage());
 		}
+
+		// 5. 如果被 “@ConditionalOnWebApplication” 注解,并且是WebApplication环境,则返回不匹配
 		return ConditionOutcome.match(outcome.getConditionMessage());
 	}
 
@@ -121,7 +127,7 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 			AnnotatedTypeMetadata metadata, boolean required) {
 
 		/**
-		 * 推断类型 {@link #deduceType(AnnotatedTypeMetadata)}
+		 * 推断 WEB 类型 {@link #deduceType(AnnotatedTypeMetadata)}
 		 */
 		switch (deduceType(metadata)) {
 		case SERVLET:
@@ -182,6 +188,8 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		if (context.getResourceLoader() instanceof WebApplicationContext) {
 			return ConditionOutcome.match(message.foundExactly("WebApplicationContext"));
 		}
+
+		// 其他情况,返回不匹配.
 		return ConditionOutcome.noMatch(message.because("not a servlet web application"));
 	}
 
