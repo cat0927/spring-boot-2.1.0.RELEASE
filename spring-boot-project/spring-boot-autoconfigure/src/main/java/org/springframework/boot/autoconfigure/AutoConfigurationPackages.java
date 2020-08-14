@@ -70,6 +70,8 @@ public abstract class AutoConfigurationPackages {
 	 */
 	public static List<String> get(BeanFactory beanFactory) {
 		try {
+
+			// 提供数据源
 			return beanFactory.getBean(BEAN, BasePackages.class).get();
 		}
 		catch (NoSuchBeanDefinitionException ex) {
@@ -131,12 +133,18 @@ public abstract class AutoConfigurationPackages {
 	/**
 	 * {@link ImportBeanDefinitionRegistrar} to store the base package from the importing
 	 * configuration.
+	 *
+	 *  【 自动扫描包 】
 	 */
 	static class Registrar implements ImportBeanDefinitionRegistrar, DeterminableImports {
 
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata metadata,
 				BeanDefinitionRegistry registry) {
+
+			/**
+			 *  【 register 】{@link #register(BeanDefinitionRegistry, String...)}
+			 */
 			register(registry, new PackageImport(metadata).getPackageName());
 		}
 

@@ -37,6 +37,9 @@ import org.springframework.context.annotation.Import;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
+/**
+ * 【 AutoConfigurationPackages 】{@link AutoConfigurationPackages.Registrar}
+ */
 @Import(AutoConfigurationPackages.Registrar.class)
 public @interface AutoConfigurationPackage {
 
