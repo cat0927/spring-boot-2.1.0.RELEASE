@@ -372,7 +372,7 @@ public class SpringApplication {
 			Banner printedBanner = printBanner(environment);
 
 			/**
-			 * 8、创建应用上下文
+			 * 8、创建应用上下文 {@link #createApplicationContext()}
 			 *
 			 *  根据传参，推断WEB 应用类型。返回的 `ConfigurableApplicationContext`
 			 */
@@ -384,7 +384,7 @@ public class SpringApplication {
 					new Class[] { ConfigurableApplicationContext.class }, context);
 
 			/**
-			 *  10、准备应用上下文
+			 *  10、准备应用上下文 (bean 加载)
 			 *
 			 *  【设置应用上下文】 {@link #prepareContext(ConfigurableApplicationContext, ConfigurableEnvironment, SpringApplicationRunListeners, ApplicationArguments, Banner)}
 			 */

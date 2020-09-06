@@ -68,6 +68,11 @@ import org.springframework.util.StringUtils;
  * @author Madhura Bhave
  * @since 1.3.0
  * @see EnableAutoConfiguration
+ *
+ *
+ *   Spring 保证在调用 `ImportSelector` 之前会先调用 Aware接口。
+ *   	1、BeanClassLoaderAware、ResourceLoaderAware、BeanFactoryAware、EnvironmentAware
+ *   	2、DeferredImportSelector
  */
 public class AutoConfigurationImportSelector
 		implements DeferredImportSelector, BeanClassLoaderAware, ResourceLoaderAware,
@@ -97,6 +102,10 @@ public class AutoConfigurationImportSelector
 	 */
 	@Override
 	public String[] selectImports(AnnotationMetadata annotationMetadata) {
+
+		/**
+		 *  检查自动装配是否开启（默认是: 开启） {@link #isEnabled(AnnotationMetadata)}
+		 */
 		if (!isEnabled(annotationMetadata)) {
 			return NO_IMPORTS;
 		}
@@ -122,10 +131,12 @@ public class AutoConfigurationImportSelector
 				.loadMetadata(this.beanClassLoader);
 
 		/**
-		 * 【 getAutoConfigurationEntry 】{@link #getAutoConfigurationEntry(AutoConfigurationMetadata, AnnotationMetadata)}
+		 * 【 封装将被引入的自动装配信息 】{@link #getAutoConfigurationEntry(AutoConfigurationMetadata, AnnotationMetadata)}
 		 */
 		AutoConfigurationEntry autoConfigurationEntry = getAutoConfigurationEntry(
 				autoConfigurationMetadata, annotationMetadata);
+
+		// 返回符合条件的配置类 的全限定类名数组。
 		return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
 	}
 
@@ -153,7 +164,7 @@ public class AutoConfigurationImportSelector
 		List<String> configurations = getCandidateConfigurations(annotationMetadata,
 				attributes);
 
-		// 去除重复对象。说明 configurations 存在重复的可能。
+		// 去除重复对象。说明 configurations 存在重复的可能。防止多个项目引入同样的配置类。
 		configurations = removeDuplicates(configurations);
 
 		/**
@@ -181,7 +192,8 @@ public class AutoConfigurationImportSelector
 		 */
 
 		/**
-		 * 再次执行过滤操作。{@link #filter(List, AutoConfigurationMetadata)}
+		 * 检查配置类的注解是否符合 `spring.factories ` 文件中的 AutoConfigurationImportFilter 指定注解检查条件。
+		 *  。{@link #filter(List, AutoConfigurationMetadata)}
 		 */
 		configurations = filter(configurations, autoConfigurationMetadata);
 
@@ -203,6 +215,11 @@ public class AutoConfigurationImportSelector
 
 	protected boolean isEnabled(AnnotationMetadata metadata) {
 		if (getClass() == AutoConfigurationImportSelector.class) {
+
+			/*
+			 *  如果配置文件中 `application.properties`
+			 * 	 spring.boot.enableautoconfiguration = false 表示关闭自动装配
+			 */
 			return getEnvironment().getProperty(
 					EnableAutoConfiguration.ENABLED_OVERRIDE_PROPERTY, Boolean.class,
 					true);
@@ -327,6 +344,8 @@ public class AutoConfigurationImportSelector
 	 */
 	protected Set<String> getExclusions(AnnotationMetadata metadata,
 			AnnotationAttributes attributes) {
+
+		// 创建Set集合并把待排查的内容存于集合内，LinkedHashSet 具有不可重复性。
 		Set<String> excluded = new LinkedHashSet<>();
 		excluded.addAll(asList(attributes, "exclude"));
 		excluded.addAll(Arrays.asList(attributes.getStringArray("excludeName")));
@@ -367,6 +386,7 @@ public class AutoConfigurationImportSelector
 		 *   OnBeanCondition、
 		 *   OnClassCondition、
 		 *   OnWebApplicationCondition
+		 *
 		 *   	这三个是 “AutoConfigurationImportFilter” 实现类。
 		 *
 		 */
@@ -374,6 +394,8 @@ public class AutoConfigurationImportSelector
 			invokeAwareMethods(filter);
 
 			/**
+			 *  有抽象父类实现 `FilteringSpringBootCondition`
+			 *
 			 * 【 match 】{@link org.springframework.boot.autoconfigure.condition.FilteringSpringBootCondition#match(String[], AutoConfigurationMetadata)}
 			 */
 			boolean[] match = filter.match(candidates, autoConfigurationMetadata);

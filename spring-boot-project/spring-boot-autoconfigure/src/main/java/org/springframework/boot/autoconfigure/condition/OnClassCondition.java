@@ -233,6 +233,10 @@ class OnClassCondition extends FilteringSpringBootCondition {
 
 		private ConditionOutcome getOutcome(String className,
 				ClassNameFilter classNameFilter, ClassLoader classLoader) {
+
+			/**
+			 * 通过类加载判断是否存在 {@link org.springframework.boot.autoconfigure.condition.FilteringSpringBootCondition.ClassNameFilter#matches(String, ClassLoader)}
+			 */
 			if (classNameFilter.matches(className, classLoader)) {
 				return ConditionOutcome.noMatch(ConditionMessage
 						.forCondition(ConditionalOnClass.class)

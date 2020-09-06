@@ -55,6 +55,10 @@ class OnPropertyCondition extends SpringBootCondition {
 		List<ConditionMessage> noMatch = new ArrayList<>();
 		List<ConditionMessage> match = new ArrayList<>();
 		for (AnnotationAttributes annotationAttributes : allAnnotationAttributes) {
+
+			/**
+			 *  {@link #determineOutcome(AnnotationAttributes, PropertyResolver)}
+			 */
 			ConditionOutcome outcome = determineOutcome(annotationAttributes,
 					context.getEnvironment());
 			(outcome.isMatch() ? match : noMatch).add(outcome.getConditionMessage());

@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  */
 final class AutoConfigurationMetadataLoader {
 
+	// 默认加载元数据的路径。
 	protected static final String PATH = "META-INF/"
 			+ "spring-autoconfigure-metadata.properties";
 
@@ -53,10 +54,13 @@ final class AutoConfigurationMetadataLoader {
 	 */
 	static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader, String path) {
 		try {
+			// 将数据存储到 `Enumeration` 中
 			Enumeration<URL> urls = (classLoader != null) ? classLoader.getResources(path)
 					: ClassLoader.getSystemResources(path);
 			Properties properties = new Properties();
 			while (urls.hasMoreElements()) {
+
+				// 遍历 Enumeration 中的 URL 加载其中的属性，存储到 Properties 中。
 				properties.putAll(PropertiesLoaderUtils
 						.loadProperties(new UrlResource(urls.nextElement())));
 			}

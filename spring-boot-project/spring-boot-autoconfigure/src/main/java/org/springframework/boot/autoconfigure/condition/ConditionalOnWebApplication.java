@@ -35,12 +35,15 @@ import org.springframework.context.annotation.Conditional;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+// OnWebApplicationCondition
 @Conditional(OnWebApplicationCondition.class)
 public @interface ConditionalOnWebApplication {
 
 	/**
 	 * The required type of the web application.
 	 * @return the required web application type
+	 *
+	 *  所需 web 应用类型。
 	 */
 	Type type() default Type.ANY;
 

@@ -102,7 +102,9 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		boolean required = metadata
 				.isAnnotated(ConditionalOnWebApplication.class.getName());
 
-		// 判断当前 Spring 应用是否是 Web 应用。
+		/**
+		 * 判断当前 Spring 应用是否是 Web 应用。{@link #isWebApplication(ConditionContext, AnnotatedTypeMetadata, boolean)}
+		 */
 		ConditionOutcome outcome = isWebApplication(context, metadata, required);
 		if (required && !outcome.isMatch()) {
 
@@ -132,11 +134,19 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		switch (deduceType(metadata)) {
 		case SERVLET:
 
-			// 【 isServletWebApplication 】
+			/**
+			 *  是否为 `SERVLET` {@link #isServletWebApplication(ConditionContext)}
+			 */
 			return isServletWebApplication(context);
 		case REACTIVE:
+
+			/**
+			 * 是否为 `REACTIVE` {@link #isReactiveWebApplication(ConditionContext)}
+			 */
 			return isReactiveWebApplication(context);
 		default:
+
+			// 其他
 			return isAnyWebApplication(context, required);
 		}
 	}

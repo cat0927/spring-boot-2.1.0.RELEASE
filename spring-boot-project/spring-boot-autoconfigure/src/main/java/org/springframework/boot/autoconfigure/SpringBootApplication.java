@@ -42,12 +42,15 @@ import org.springframework.core.annotation.AliasFor;
  * @author Phillip Webb
  * @author Stephane Nicoll
  * @since 1.2.0
+ *
+ *  组合注解。
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
 @SpringBootConfiguration
+// 自动装配原理。EnableAutoConfiguration
 @EnableAutoConfiguration
 @ComponentScan(excludeFilters = {
 		@Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
@@ -57,6 +60,8 @@ public @interface SpringBootApplication {
 	/**
 	 * Exclude specific auto-configuration classes such that they will never be applied.
 	 * @return the classes to exclude
+	 *
+	 *  排除自动装配的类
 	 */
 	@AliasFor(annotation = EnableAutoConfiguration.class)
 	Class<?>[] exclude() default {};
@@ -66,6 +71,8 @@ public @interface SpringBootApplication {
 	 * applied.
 	 * @return the class names to exclude
 	 * @since 1.3.0
+	 *
+	 *  排除自动装配的类名
 	 */
 	@AliasFor(annotation = EnableAutoConfiguration.class)
 	String[] excludeName() default {};
@@ -75,6 +82,8 @@ public @interface SpringBootApplication {
 	 * for a type-safe alternative to String-based package names.
 	 * @return base packages to scan
 	 * @since 1.3.0
+	 *
+	 *  指定扫描类，用于初始化
 	 */
 	@AliasFor(annotation = ComponentScan.class, attribute = "basePackages")
 	String[] scanBasePackages() default {};

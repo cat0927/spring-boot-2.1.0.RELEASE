@@ -106,6 +106,10 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 		}
 		List<String> matches = new ArrayList<>(classNames.size());
 		for (String candidate : classNames) {
+
+			/**
+			 * {@link ClassNameFilter#matches(String, ClassLoader)}
+			 */
 			if (classNameFilter.matches(candidate, classLoader)) {
 				matches.add(candidate);
 			}
@@ -135,6 +139,8 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 
 		public abstract boolean matches(String className, ClassLoader classLoader);
 
+
+		// 同类加载是否抛出异常，来判断类是否存在
 		public static boolean isPresent(String className, ClassLoader classLoader) {
 			if (classLoader == null) {
 				classLoader = ClassUtils.getDefaultClassLoader();
@@ -148,6 +154,7 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 			}
 		}
 
+		// 类加载操作。
 		private static Class<?> forName(String className, ClassLoader classLoader)
 				throws ClassNotFoundException {
 			if (classLoader != null) {
