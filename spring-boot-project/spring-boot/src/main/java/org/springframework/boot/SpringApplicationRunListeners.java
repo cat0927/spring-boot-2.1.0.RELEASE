@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 
+import org.springframework.boot.context.event.EventPublishingRunListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.ReflectionUtils;
@@ -45,6 +46,10 @@ class SpringApplicationRunListeners {
 
 	public void starting() {
 		for (SpringApplicationRunListener listener : this.listeners) {
+
+			/**
+			 * {@link EventPublishingRunListener#starting()}
+			 */
 			listener.starting();
 		}
 	}
@@ -66,7 +71,7 @@ class SpringApplicationRunListeners {
 		for (SpringApplicationRunListener listener : this.listeners) {
 
 			/**
-			 * {@link org.springframework.boot.context.event.EventPublishingRunListener#contextLoaded(ConfigurableApplicationContext)}
+			 * {@link EventPublishingRunListener#contextLoaded(ConfigurableApplicationContext)}
 			 */
 			listener.contextLoaded(context);
 		}

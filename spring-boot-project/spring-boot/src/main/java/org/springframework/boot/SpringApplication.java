@@ -268,8 +268,12 @@ public class SpringApplication {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
+
+		// 赋值 `resourceLoader`
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+
+		// 赋值 成员变量 `primarySources` LinkedHashSet 有去重的作用。
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
 
 		/**
@@ -281,12 +285,14 @@ public class SpringApplication {
 		 * 2、加载 Spring 应用上下文初始化器。{@link #getSpringFactoriesInstances(Class, Class[], Object...)}
 		 *
 		 *   2.1、覆盖性更新 {@link #setInitializers(Collection)} 放入全局变量 “initializers”
+		 *
+		 *    加载并初始化 `ApplicationContextInitializer`
 		 */
 		setInitializers((Collection) getSpringFactoriesInstances(
 				ApplicationContextInitializer.class));
 
 		/**
-		 * 3、加载 Spring 应用事件监听
+		 * 3、加载并初始化 `ApplicationListener`
 		 * 	getSpringFactoriesInstances 获取 “ApplicationListener”
 		 *
 		 * 	 通过 “SpringFactoriesLoader.loadFactoryNames” 的方式，获取,指定bean 工厂创建类的实例。
@@ -297,7 +303,7 @@ public class SpringApplication {
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
 
 		/**
-		 * 4、推断应用引导类。{@link #deduceMainApplicationClass()}
+		 * 4、推断应用引导类（main 方法）。{@link #deduceMainApplicationClass()}
 		 */
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
@@ -325,8 +331,7 @@ public class SpringApplication {
 	 * @param args the application arguments (usually passed from a Java main method)
 	 * @return a running {@link ApplicationContext}
 	 *
-	 *  【 运行阶段 】
-	 *  【 核心逻辑 】
+	 *  【 运行阶段 】【 核心逻辑 】
 	 */
 	public ConfigurableApplicationContext run(String... args) {
 
@@ -348,6 +353,10 @@ public class SpringApplication {
 		 *   获取 “SpringApplicationRunListener” 实现类 “EventPublishingRunListener” 类。
 		 */
 		SpringApplicationRunListeners listeners = getRunListeners(args);
+
+		/**
+		 * 【 starting 事件】{@link SpringApplicationRunListeners#starting()}
+		 */
 		listeners.starting();
 		try {
 
@@ -360,9 +369,9 @@ public class SpringApplication {
 					args);
 
 			/**
-			 *  6、根据运行监听器和应用参数来准备 Spring 环境
+			 *  6、根据运行监听器和应用参数来准备 Spring 环境 {@link #prepareEnvironment(SpringApplicationRunListeners, ApplicationArguments)}
 			 *
-			 *  {@link #prepareEnvironment(SpringApplicationRunListeners, ApplicationArguments)}
+			 *
 			 */
 			ConfigurableEnvironment environment = prepareEnvironment(listeners,
 					applicationArguments);
@@ -425,6 +434,10 @@ public class SpringApplication {
 			callRunners(context, applicationArguments);
 		}
 		catch (Throwable ex) {
+
+			/**
+			 * 应用程序运行异常 {@link #handleRunFailure(ConfigurableApplicationContext, Throwable, Collection, SpringApplicationRunListeners)}
+			 */
 			handleRunFailure(context, ex, exceptionReporters, listeners);
 			throw new IllegalStateException(ex);
 		}
@@ -439,6 +452,8 @@ public class SpringApplication {
 			listeners.running(context);
 		}
 		catch (Throwable ex) {
+
+			// 应用程序运行异常
 			handleRunFailure(context, ex, exceptionReporters, null);
 			throw new IllegalStateException(ex);
 		}
@@ -461,6 +476,10 @@ public class SpringApplication {
 		 * 6.2) 配置应用环境  applicationArguments.getSourceArgs() 是 "new DefaultApplicationArguments(args)" 入参。
 		 */
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
+
+		/**
+		 * 【 listeners 】{@link SpringApplicationRunListeners#environmentPrepared(ConfigurableEnvironment)}
+		 */
 		listeners.environmentPrepared(environment);
 		bindToSpringApplication(environment);
 		if (!this.isCustomEnvironment) {
@@ -558,7 +577,7 @@ public class SpringApplication {
 		 *
 		 *  10.8）触发所有 SpringApplicationRunListener 监听器的 contextLoaded 事件方法
 		 *
-		 * 4、执行回调。
+		 * 4、执行回调。{@link SpringApplicationRunListeners#contextLoaded(ConfigurableApplicationContext)}
 		 */
 		listeners.contextLoaded(context);
 	}
@@ -621,7 +640,7 @@ public class SpringApplication {
 		 *  {@link  org.springframework.boot.context.event.EventPublishingRunListener
 		 *
 		 *
-		 *	【 SpringApplication 构造器 】加载应用上下文。
+		 *	【 SpringApplication 构造器 】加载应用上下文, 读取 `spring.factories` 中指定Key。
 		 * 2、SpringFactoryLoader.loadFactoryNames(ApplicationContextInitializer.class)
 		 *
 		 *  {@link org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener}
@@ -646,8 +665,12 @@ public class SpringApplication {
 			Class<?>[] parameterTypes, ClassLoader classLoader, Object[] args,
 			Set<String> names) {
 		List<T> instances = new ArrayList<>(names.size());
+
+		// 遍历类名（全限定类名）
 		for (String name : names) {
 			try {
+
+				// 获取 class
 				Class<?> instanceClass = ClassUtils.forName(name, classLoader);
 				Assert.isAssignable(type, instanceClass);
 
@@ -1066,6 +1089,10 @@ public class SpringApplication {
 			try {
 				handleExitCode(context, exception);
 				if (listeners != null) {
+
+					/**
+					 * 发布 `failed` 事件 {@link SpringApplicationRunListeners#failed(ConfigurableApplicationContext, Throwable)}
+					 */
 					listeners.failed(context, exception);
 				}
 			}
