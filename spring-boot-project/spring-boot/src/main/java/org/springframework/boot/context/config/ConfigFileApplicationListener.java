@@ -189,7 +189,9 @@ public class ConfigFileApplicationListener
 		AnnotationAwareOrderComparator.sort(postProcessors);
 		for (EnvironmentPostProcessor postProcessor : postProcessors) {
 
-			// 【 postProcessEnvironment 】
+			/**
+			 * postProcessEnvironment {@link ConfigFileApplicationListener#postProcessEnvironment(ConfigurableEnvironment, SpringApplication)}
+			 */
 			postProcessor.postProcessEnvironment(event.getEnvironment(),
 					event.getSpringApplication());
 		}

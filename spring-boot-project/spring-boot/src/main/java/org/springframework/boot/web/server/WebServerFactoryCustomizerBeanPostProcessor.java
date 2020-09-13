@@ -38,6 +38,8 @@ import org.springframework.util.Assert;
  * @author Phillip Webb
  * @author Stephane Nicoll
  * @since 2.0.0
+ *
+ *  作用主要是在 WebServerFactory 初始化时获取自动装配类注入 WebServerFactoryCustomizer.
  */
 public class WebServerFactoryCustomizerBeanPostProcessor
 		implements BeanPostProcessor, BeanFactoryAware {

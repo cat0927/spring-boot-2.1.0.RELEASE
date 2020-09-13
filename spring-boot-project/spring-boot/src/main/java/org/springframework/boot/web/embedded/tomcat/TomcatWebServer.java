@@ -83,6 +83,8 @@ public class TomcatWebServer implements WebServer {
 		Assert.notNull(tomcat, "Tomcat Server must not be null");
 		this.tomcat = tomcat;
 		this.autoStart = autoStart;
+
+		// 初始化。
 		initialize();
 	}
 
@@ -90,25 +92,37 @@ public class TomcatWebServer implements WebServer {
 		logger.info("Tomcat initialized with port(s): " + getPortsDescription(false));
 		synchronized (this.monitor) {
 			try {
+
+				// 将实例ID 添加到 tomcat 引擎名字中，格式为 “原引擎名字-实例ID”
 				addInstanceIdToEngineName();
 
 				Context context = findContext();
+
+				// 添加生命周期监听事件。
 				context.addLifecycleListener((event) -> {
 					if (context.equals(event.getSource())
 							&& Lifecycle.START_EVENT.equals(event.getType())) {
 						// Remove service connectors so that protocol binding doesn't
 						// happen when the service is started.
+
+						// 移除 connector 确保当服务器启动时不会进行协议绑定。
 						removeServiceConnectors();
 					}
 				});
 
 				// Start the server to trigger initialization listeners
+
+				// 启动服务，触发初始化监听。
 				this.tomcat.start();
 
 				// We can re-throw failure exception directly in the main thread
+
+				// 可以直接在主线程中重新抛出失败异常。 TomcatStarter 不存在等。。
 				rethrowDeferredStartupExceptions();
 
 				try {
+
+					// 绑定一个命名 context 到类加载器。
 					ContextBindings.bindClassLoader(context, context.getNamingToken(),
 							getClass().getClassLoader());
 				}
@@ -118,6 +132,7 @@ public class TomcatWebServer implements WebServer {
 
 				// Unlike Jetty, all Tomcat threads are daemon threads. We create a
 				// blocking non-daemon to stop immediate shutdown
+				// 与 jetty 不同，所有 Tomact 线程都是守护线程，创建一个阻止非守护程序停止立即关闭。
 				startDaemonAwaitThread();
 			}
 			catch (Exception ex) {

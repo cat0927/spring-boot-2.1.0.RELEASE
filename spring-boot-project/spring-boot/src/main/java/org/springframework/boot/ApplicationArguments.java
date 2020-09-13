@@ -30,6 +30,8 @@ public interface ApplicationArguments {
 	/**
 	 * Return the raw unprocessed arguments that were passed to the application.
 	 * @return the arguments
+	 *
+	 *  返回原始未处理的参数，（通过application 传入）
 	 */
 	String[] getSourceArgs();
 
@@ -37,6 +39,9 @@ public interface ApplicationArguments {
 	 * Return the names of all option arguments. For example, if the arguments were
 	 * "--foo=bar --debug" would return the values {@code ["foo", "debug"]}.
 	 * @return the option names or an empty set
+	 *
+	 *  返回所有参数名称的集合
+	 *  例如 --foo=bar --debug 则返回 ["foo","debug"]
 	 */
 	Set<String> getOptionNames();
 
@@ -45,6 +50,8 @@ public interface ApplicationArguments {
 	 * option with the given name.
 	 * @param name the name to check
 	 * @return {@code true} if the arguments contain an option with the given name
+	 *
+	 *  是否包含指定名称的参数。
 	 */
 	boolean containsOption(String name);
 
@@ -62,12 +69,16 @@ public interface ApplicationArguments {
 	 * </ul>
 	 * @param name the name of the option
 	 * @return a list of option values for the given name
+	 *
+	 *  获取指定 name 参数列表
 	 */
 	List<String> getOptionValues(String name);
 
 	/**
 	 * Return the collection of non-option arguments parsed.
 	 * @return the non-option arguments or an empty list
+	 *
+	 *  返回非选项参数列表。
 	 */
 	List<String> getNonOptionArgs();
 

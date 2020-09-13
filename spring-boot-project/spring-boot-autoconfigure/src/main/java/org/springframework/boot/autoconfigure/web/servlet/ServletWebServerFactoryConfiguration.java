@@ -51,8 +51,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class ServletWebServerFactoryConfiguration {
 
+
+	/**
+	 * webServer 工厂（Tomcat）
+	 */
 	@Configuration
 	@ConditionalOnClass({ Servlet.class, Tomcat.class, UpgradeProtocol.class })
+
+	/**
+	 * search 搜索策略。{@link SearchStrategy#CURRENT}
+	 *
+	 */
 	@ConditionalOnMissingBean(value = ServletWebServerFactory.class, search = SearchStrategy.CURRENT)
 	public static class EmbeddedTomcat {
 
@@ -65,6 +74,8 @@ class ServletWebServerFactoryConfiguration {
 
 	/**
 	 * Nested configuration if Jetty is being used.
+	 *
+	 *  Jetty 容器
 	 */
 	@Configuration
 	@ConditionalOnClass({ Servlet.class, Server.class, Loader.class,
@@ -81,6 +92,8 @@ class ServletWebServerFactoryConfiguration {
 
 	/**
 	 * Nested configuration if Undertow is being used.
+	 *
+	 *  Undertow 容器
 	 */
 	@Configuration
 	@ConditionalOnClass({ Servlet.class, Undertow.class, SslClientAuthMode.class })

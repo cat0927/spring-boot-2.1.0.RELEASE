@@ -37,6 +37,10 @@ public class ServletWebServerFactoryCustomizer implements
 
 	private final ServerProperties serverProperties;
 
+	/**
+	 * 通过 ServerProperties 传参进行设置属性。
+	 * @param serverProperties
+	 */
 	public ServletWebServerFactoryCustomizer(ServerProperties serverProperties) {
 		this.serverProperties = serverProperties;
 	}

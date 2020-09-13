@@ -268,11 +268,18 @@ public class WebMvcAutoConfiguration {
 			return resolver;
 		}
 
+		/**
+		 * viewResolver 解析
+		 * @param beanFactory
+		 * @return
+		 */
 		@Bean
 		@ConditionalOnBean(ViewResolver.class)
 		@ConditionalOnMissingBean(name = "viewResolver", value = ContentNegotiatingViewResolver.class)
 		public ContentNegotiatingViewResolver viewResolver(BeanFactory beanFactory) {
 			ContentNegotiatingViewResolver resolver = new ContentNegotiatingViewResolver();
+
+			// 请求资源类型管理器，设置优先级。
 			resolver.setContentNegotiationManager(
 					beanFactory.getBean(ContentNegotiationManager.class));
 			// ContentNegotiatingViewResolver uses all the other view resolvers to locate
@@ -322,8 +329,14 @@ public class WebMvcAutoConfiguration {
 			return this.beanFactory.getBeansOfType(type).values();
 		}
 
+		/**
+		 * 对静态资源的支持
+		 * @param registry
+		 */
 		@Override
 		public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+			// 如果默认资源处理器，为不可用状态则返回。
 			if (!this.resourceProperties.isAddMappings()) {
 				logger.debug("Default resource handling disabled");
 				return;
@@ -331,7 +344,11 @@ public class WebMvcAutoConfiguration {
 			Duration cachePeriod = this.resourceProperties.getCache().getPeriod();
 			CacheControl cacheControl = this.resourceProperties.getCache()
 					.getCachecontrol().toHttpCacheControl();
+
+			// 对 webjars 特殊处理。
 			if (!registry.hasMappingForPattern("/webjars/**")) {
+
+				// 不存在配置这里使用，默认路径。
 				customizeResourceHandlerRegistration(registry
 						.addResourceHandler("/webjars/**")
 						.addResourceLocations("classpath:/META-INF/resources/webjars/")
@@ -353,15 +370,23 @@ public class WebMvcAutoConfiguration {
 			return (cachePeriod != null) ? (int) cachePeriod.getSeconds() : null;
 		}
 
+		/**
+		 * 静态 index.html
+		 * @param applicationContext
+		 * @return
+		 */
 		@Bean
 		public WelcomePageHandlerMapping welcomePageHandlerMapping(
 				ApplicationContext applicationContext) {
+
+			// 构建对象。
 			return new WelcomePageHandlerMapping(
 					new TemplateAvailabilityProviders(applicationContext),
 					applicationContext, getWelcomePage(),
 					this.mvcProperties.getStaticPathPattern());
 		}
 
+		// 获取默认查找 index.html 的路径数组
 		static String[] getResourceLocations(String[] staticLocations) {
 			String[] locations = new String[staticLocations.length
 					+ SERVLET_LOCATIONS.length];
@@ -371,9 +396,21 @@ public class WebMvcAutoConfiguration {
 			return locations;
 		}
 
+		/**
+		 * 遍历每个路径，过滤可用 index.html 文件。
+		 * @return
+		 */
 		private Optional<Resource> getWelcomePage() {
+
+			/**
+			 * {@link #getResourceLocations(String[])}
+			 */
 			String[] locations = getResourceLocations(
 					this.resourceProperties.getStaticLocations());
+
+			/**
+			 * {@link #getIndexHtml(String)}
+			 */
 			return Arrays.stream(locations).map(this::getIndexHtml)
 					.filter(this::isReadable).findFirst();
 		}
@@ -382,6 +419,7 @@ public class WebMvcAutoConfiguration {
 			return this.resourceLoader.getResource(location + "index.html");
 		}
 
+		// 判断是否可用。
 		private boolean isReadable(Resource resource) {
 			try {
 				return resource.exists() && (resource.getURL() != null);

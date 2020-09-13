@@ -82,9 +82,13 @@ public class ServletContextInitializerBeans
 	public ServletContextInitializerBeans(ListableBeanFactory beanFactory,
 			Class<? extends ServletContextInitializer>... initializerTypes) {
 		this.initializers = new LinkedMultiValueMap<>();
+
+		// 构造参数 initializerTypes 为空，默认会设置为只有一个 `ServletContextInitializer.class` 的列表。
 		this.initializerTypes = (initializerTypes.length != 0)
 				? Arrays.asList(initializerTypes)
 				: Collections.singletonList(ServletContextInitializer.class);
+
+		// [ addServletContextInitializerBeans ]
 		addServletContextInitializerBeans(beanFactory);
 		addAdaptableBeans(beanFactory);
 		List<ServletContextInitializer> sortedInitializers = this.initializers.values()
@@ -96,9 +100,19 @@ public class ServletContextInitializerBeans
 	}
 
 	private void addServletContextInitializerBeans(ListableBeanFactory beanFactory) {
+
+		// 遍历 initializerTypes， 这里只有一个 `ServletContextInitializer`
 		for (Class<? extends ServletContextInitializer> initializerType : this.initializerTypes) {
+
+			/**
+			 * {@link #getOrderedBeansOfType(ListableBeanFactory, Class)}  获得 ListableBeanFactory 中指定类型。的 Bean name
+			 *
+			 *
+			 */
 			for (Entry<String, ? extends ServletContextInitializer> initializerBean : getOrderedBeansOfType(
 					beanFactory, initializerType)) {
+
+				// 获得 `ServletContextInitializer` 对象列表到该类的成员变量 initializers 中。
 				addServletContextInitializerBean(initializerBean.getKey(),
 						initializerBean.getValue(), beanFactory);
 			}

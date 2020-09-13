@@ -40,7 +40,9 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 	public DefaultApplicationArguments(String[] args) {
 		Assert.notNull(args, "Args must not be null");
 
-		// 【 Source 】
+		/**
+		 * source 实现类 {@link Source#Source(String[])}
+		 */
 		this.source = new Source(args);
 		this.args = args;
 	}
@@ -84,6 +86,10 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 	private static class Source extends SimpleCommandLinePropertySource {
 
 		Source(String[] args) {
+
+			/**
+			 *  super {@link SimpleCommandLinePropertySource#SimpleCommandLinePropertySource(String...)}
+			 */
 			super(args);
 		}
 

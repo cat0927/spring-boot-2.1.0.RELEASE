@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.Scope;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -149,6 +150,11 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	protected void onRefresh() {
 		super.onRefresh();
 		try {
+
+			/**
+			 * 创建 webServer {@link #createWebServer()}
+			 *
+			 */
 			createWebServer();
 		}
 		catch (Throwable ex) {
@@ -171,18 +177,38 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		stopAndReleaseWebServer();
 	}
 
+	/**
+	 * 创建 webServer.
+	 */
 	private void createWebServer() {
 		WebServer webServer = this.webServer;
 
 		// 1. 获得ServletContext
 		ServletContext servletContext = getServletContext();
 		if (webServer == null && servletContext == null) {
+
+			/**
+			 *  获取Servlet 容器工厂  {@link #getWebServerFactory()}
+			 */
 			ServletWebServerFactory factory = getWebServerFactory();
+
+			/**
+			 * 获取具体 Servlet 容器实例
+			 *
+			 *  tomcat 容器实例 {@link org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory#getWebServer(ServletContextInitializer...)}
+			 *  jetty 容器实例 {@link org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory#getWebServer(ServletContextInitializer...)}
+			 *  undertow 容器实例 {@link org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#getWebServer(ServletContextInitializer...)}
+			 *
+			 */
 			this.webServer = factory.getWebServer(getSelfInitializer());
 		}
 		else if (servletContext != null) {
 
-			// 3. 内置Servlet容器已经初始化但是ServletContext还没初始化,则进行初始化.一般不会到这里
+			/**
+			 * 3. 内置Servlet容器已经初始化但是ServletContext还没初始化,则进行初始化.一般不会到这里
+			 *
+			 * 		{@link #getSelfInitializer()}
+			 */
 			try {
 				getSelfInitializer().onStartup(servletContext);
 			}
@@ -201,9 +227,13 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 * embedded {@link WebServer}. By default this method searches for a suitable bean in
 	 * the context itself.
 	 * @return a {@link ServletWebServerFactory} (never {@code null})
+	 *
+	 *  获取 Server 容器工厂
 	 */
 	protected ServletWebServerFactory getWebServerFactory() {
 		// Use bean names so that we don't consider the hierarchy
+
+		// 获取类型为 ServletWebServerFactory beanName 数组。
 		String[] beanNames = getBeanFactory()
 				.getBeanNamesForType(ServletWebServerFactory.class);
 		if (beanNames.length == 0) {
@@ -230,16 +260,27 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		return this::selfInitialize;
 	}
 
+	// [ selfInitialize ]
 	private void selfInitialize(ServletContext servletContext) throws ServletException {
+
+		// 通过指定 servletContext 准备 WebApplicationContext.
 		prepareWebApplicationContext(servletContext);
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		ExistingWebApplicationScopes existingScopes = new ExistingWebApplicationScopes(
 				beanFactory);
+
+		// 将其注册为，全局Web应用范围（“application”） 对应的值和注册 为 ServletContext 类的属性。
 		WebApplicationContextUtils.registerWebApplicationScopes(beanFactory,
 				getServletContext());
 		existingScopes.restore();
+
+
 		WebApplicationContextUtils.registerEnvironmentBeans(beanFactory,
 				getServletContext());
+
+		/**
+		 *  {@link #getServletContextInitializerBeans()} 获取 `ServletContextInitializer` bean 集合
+		 */
 		for (ServletContextInitializer beans : getServletContextInitializerBeans()) {
 			beans.onStartup(servletContext);
 		}
@@ -253,6 +294,12 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 * @return the servlet initializer beans
 	 */
 	protected Collection<ServletContextInitializer> getServletContextInitializerBeans() {
+
+		/**
+		 *  其实是从 {@link ListableBeanFactory} 中获取 `ServletContextInitializer` 集合。
+		 *
+		 *   {@link ServletContextInitializerBeans#ServletContextInitializerBeans(ListableBeanFactory, Class[])}
+		 */
 		return new ServletContextInitializerBeans(getBeanFactory());
 	}
 

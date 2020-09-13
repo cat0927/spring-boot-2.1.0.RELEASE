@@ -25,16 +25,22 @@ public enum SearchStrategy {
 
 	/**
 	 * Search only the current context.
+	 *
+	 *  搜索当前容器
 	 */
 	CURRENT,
 
 	/**
 	 * Search all ancestors, but not the current context.
+	 *
+	 *  搜索祖先容器（不包含当前容器）
 	 */
 	ANCESTORS,
 
 	/**
 	 * Search the entire hierarchy.
+	 *
+	 *  搜索所有层级容器
 	 */
 	ALL
 

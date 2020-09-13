@@ -41,6 +41,9 @@ public class PropertiesPropertySourceLoader implements PropertySourceLoader {
 		return new String[] { "properties", "xml" };
 	}
 
+	/**
+	 *  加载指定文件。
+	 */
 	@Override
 	public List<PropertySource<?>> load(String name, Resource resource)
 			throws IOException {

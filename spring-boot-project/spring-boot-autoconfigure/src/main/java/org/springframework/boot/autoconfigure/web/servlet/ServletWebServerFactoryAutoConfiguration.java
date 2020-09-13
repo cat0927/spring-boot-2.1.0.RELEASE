@@ -52,21 +52,48 @@ import org.springframework.util.ObjectUtils;
  */
 @Configuration
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
+
+// 需要存在 ServletReuqest 类。
 @ConditionalOnClass(ServletRequest.class)
+
+// 需要 WEB 类型为 servlet 类型。
 @ConditionalOnWebApplication(type = Type.SERVLET)
+
+// 加载 ServerProperties 中的配置
 @EnableConfigurationProperties(ServerProperties.class)
+
+/**
+ *  通过  注解将其他自动装配类导入。
+ *
+ * 导入内部类 BeanPostProcessorsRegistrar 用来注册 BeanPostProcessor
+ * ServletWebServerFactoryConfiguration 三个内部类，用来判断应用服务器类型。
+ *
+ *  tomcat 容器  {@link ServletWebServerFactoryConfiguration.EmbeddedTomcat}
+ *  {@link ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar}
+ */
+
 @Import({ ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar.class,
 		ServletWebServerFactoryConfiguration.EmbeddedTomcat.class,
 		ServletWebServerFactoryConfiguration.EmbeddedJetty.class,
 		ServletWebServerFactoryConfiguration.EmbeddedUndertow.class })
 public class ServletWebServerFactoryAutoConfiguration {
 
+	/**
+	 * 初始化  `ServletWebServerFactoryCustomizer`
+	 * @param serverProperties
+	 * @return
+	 */
 	@Bean
 	public ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer(
 			ServerProperties serverProperties) {
 		return new ServletWebServerFactoryCustomizer(serverProperties);
 	}
 
+	/**
+	 * 初始化 `TomcatServletWebServerFactoryCustomizer`
+	 * @param serverProperties
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnClass(name = "org.apache.catalina.startup.Tomcat")
 	public TomcatServletWebServerFactoryCustomizer tomcatServletWebServerFactoryCustomizer(
@@ -77,12 +104,19 @@ public class ServletWebServerFactoryAutoConfiguration {
 	/**
 	 * Registers a {@link WebServerFactoryCustomizerBeanPostProcessor}. Registered via
 	 * {@link ImportBeanDefinitionRegistrar} for early registration.
+	 *
+	 *  通过实现 `ImportBeanDefinitionRegistrar` 来注册一个 WebServerFactory
 	 */
 	public static class BeanPostProcessorsRegistrar
 			implements ImportBeanDefinitionRegistrar, BeanFactoryAware {
 
 		private ConfigurableListableBeanFactory beanFactory;
 
+		/**
+		 * 实现 BeanFactoryAware 方法，设置 BeanFactory
+		 * @param beanFactory
+		 * @throws BeansException
+		 */
 		@Override
 		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 			if (beanFactory instanceof ConfigurableListableBeanFactory) {
@@ -90,6 +124,11 @@ public class ServletWebServerFactoryAutoConfiguration {
 			}
 		}
 
+		/**
+		 * 注册 `WebServerFactoryCustomizerBeanPostProcessor`
+		 * @param importingClassMetadata
+		 * @param registry
+		 */
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
@@ -104,8 +143,11 @@ public class ServletWebServerFactoryAutoConfiguration {
 					ErrorPageRegistrarBeanPostProcessor.class);
 		}
 
+		// 检查并注册 bean。
 		private void registerSyntheticBeanIfMissing(BeanDefinitionRegistry registry,
 				String name, Class<?> beanClass) {
+
+			// 如果不存在则创建 bean 并注册容器中。
 			if (ObjectUtils.isEmpty(
 					this.beanFactory.getBeanNamesForType(beanClass, true, false))) {
 				RootBeanDefinition beanDefinition = new RootBeanDefinition(beanClass);
