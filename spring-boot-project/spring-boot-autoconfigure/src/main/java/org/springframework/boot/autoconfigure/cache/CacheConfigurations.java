@@ -42,6 +42,10 @@ final class CacheConfigurations {
 		mappings.put(CacheType.COUCHBASE, CouchbaseCacheConfiguration.class);
 		mappings.put(CacheType.REDIS, RedisCacheConfiguration.class);
 		mappings.put(CacheType.CAFFEINE, CaffeineCacheConfiguration.class);
+
+		/**
+		 * {@link SimpleCacheConfiguration}
+		 */
 		mappings.put(CacheType.SIMPLE, SimpleCacheConfiguration.class);
 		mappings.put(CacheType.NONE, NoOpCacheConfiguration.class);
 		MAPPINGS = Collections.unmodifiableMap(mappings);
@@ -50,7 +54,14 @@ final class CacheConfigurations {
 	private CacheConfigurations() {
 	}
 
+	/**
+	 * 根据CacheType 类型获得对应 @Configuration 类。
+	 */
 	public static String getConfigurationClass(CacheType cacheType) {
+
+		/**
+		 * MAPPINGS 静态代码块。定义 CacheType 与 @Configuration 之间的对应管理
+		 */
 		Class<?> configurationClass = MAPPINGS.get(cacheType);
 		Assert.state(configurationClass != null, () -> "Unknown cache type " + cacheType);
 		return configurationClass.getName();

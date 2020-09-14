@@ -41,6 +41,8 @@ import org.springframework.transaction.jta.JtaTransactionManager;
  * @since 1.2.0
  */
 @Configuration
+
+// 用于开启 JMS 注解。使 @JmsListener 注解生效。
 @ConditionalOnClass(EnableJms.class)
 class JmsAnnotationDrivenConfiguration {
 
@@ -52,6 +54,13 @@ class JmsAnnotationDrivenConfiguration {
 
 	private final JmsProperties properties;
 
+	/**
+	 *
+	 * DestinationResolver 用于解决JMS 目标的策略接口，被JMS Template 用于将目标名称从简单的字符串解析为实际 `Destination` 实例。
+	 * JtaTransactionManager 是 PlatformTransactionManager 实现类，提供 Spring JTA  事务管理。用于分布式事务管理。
+	 * {@link MessageConverter} 一个策略接口。用于指定Java对象和 JMS 消息之间的转换器。
+	 *
+	 */
 	JmsAnnotationDrivenConfiguration(
 			ObjectProvider<DestinationResolver> destinationResolver,
 			ObjectProvider<JtaTransactionManager> transactionManager,

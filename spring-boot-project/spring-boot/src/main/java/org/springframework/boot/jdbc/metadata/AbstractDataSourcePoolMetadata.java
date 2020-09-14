@@ -42,15 +42,23 @@ public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
 	public Float getUsage() {
 		Integer maxSize = getMax();
 		Integer currentSize = getActive();
+
+		// 数据源不支持该信息。
 		if (maxSize == null || currentSize == null) {
 			return null;
 		}
+
+		// 分配连接没有限制
 		if (maxSize < 0) {
 			return -1F;
 		}
+
+		//  当前没有活跃连接
 		if (currentSize == 0) {
 			return 0F;
 		}
+
+		// 计算 currentSize 和 maxSize 比值。
 		return (float) currentSize / (float) maxSize;
 	}
 

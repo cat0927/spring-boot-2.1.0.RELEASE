@@ -41,6 +41,10 @@ public class DataSourcePoolMetadataProvidersConfiguration {
 	@ConditionalOnClass(org.apache.tomcat.jdbc.pool.DataSource.class)
 	static class TomcatDataSourcePoolMetadataProviderConfiguration {
 
+		/**
+		 * 判断 classpath 是否存在 tomcat 的 DataSource， 如果存在，则实例化并注册一个 DataSourcePoolMetadataProvider。
+		 * @return
+		 */
 		@Bean
 		public DataSourcePoolMetadataProvider tomcatPoolDataSourceMetadataProvider() {
 			return (dataSource) -> {

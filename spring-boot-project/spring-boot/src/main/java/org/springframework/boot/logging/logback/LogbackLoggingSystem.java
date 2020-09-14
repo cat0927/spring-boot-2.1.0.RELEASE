@@ -99,11 +99,21 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 
 	@Override
 	public void beforeInitialize() {
+
+		// 获得 LoggerContext
 		LoggerContext loggerContext = getLoggerContext();
+
+		// 如果 LoggerContext 中已经配置有 LoggingSystem 对应 logger 则直接返回。
 		if (isAlreadyInitialized(loggerContext)) {
 			return;
 		}
+
+		/**
+		 * 调用父类的初始化方法 {@link Slf4JLoggingSystem#beforeInitialize()}
+		 */
 		super.beforeInitialize();
+
+		// 向 LoggerContext 中的 TurboFilterList 添加一个 TurboFilter.
 		loggerContext.getTurboFilterList().add(FILTER);
 	}
 
@@ -127,13 +137,20 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 	@Override
 	protected void loadDefaults(LoggingInitializationContext initializationContext,
 			LogFile logFile) {
+
+		// 获得 LoggerContext 并进行重置操作。
 		LoggerContext context = getLoggerContext();
 		stopAndReset(context);
+
 		LogbackConfigurator configurator = new LogbackConfigurator(context);
 		Environment environment = initializationContext.getEnvironment();
+
+		// 配置日志级别格式。
 		context.putProperty(LoggingSystemProperties.LOG_LEVEL_PATTERN,
 				environment.resolvePlaceholders(
 						"${logging.pattern.level:${LOG_LEVEL_PATTERN:%5p}}"));
+
+		// 配置日志中时间格式。
 		context.putProperty(LoggingSystemProperties.LOG_DATEFORMAT_PATTERN,
 				environment.resolvePlaceholders(
 						"${logging.pattern.dateformat:${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}"));

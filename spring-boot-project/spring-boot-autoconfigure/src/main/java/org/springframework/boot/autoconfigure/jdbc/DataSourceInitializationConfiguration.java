@@ -30,6 +30,13 @@ import org.springframework.core.type.AnnotationMetadata;
  * @author Stephane Nicoll
  */
 @Configuration
+
+/**
+ * 【 引入两个自动装配类 】
+ * {@link DataSourceInitializerInvoker}
+ * {@link DataSourceInitializationConfiguration.Registrar}
+ */
+
 @Import({ DataSourceInitializerInvoker.class,
 		DataSourceInitializationConfiguration.Registrar.class })
 class DataSourceInitializationConfiguration {
@@ -46,8 +53,12 @@ class DataSourceInitializationConfiguration {
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
+
+			// 判断 bean 是否注册。
 			if (!registry.containsBeanDefinition(BEAN_NAME)) {
 				GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+
+				// 注册 `DataSourceInitializerPostProcessor`
 				beanDefinition.setBeanClass(DataSourceInitializerPostProcessor.class);
 				beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 				// We don't need this one to be post processed otherwise it can cause a

@@ -43,6 +43,10 @@ public abstract class Slf4JLoggingSystem extends AbstractLoggingSystem {
 	@Override
 	public void beforeInitialize() {
 		super.beforeInitialize();
+
+		/**
+		 * 配置 jdk 内置日志与 Slf4j 直接的桥接 Handler。{@link #configureJdkLoggingBridgeHandler()}
+		 */
 		configureJdkLoggingBridgeHandler();
 	}
 
@@ -64,8 +68,14 @@ public abstract class Slf4JLoggingSystem extends AbstractLoggingSystem {
 
 	private void configureJdkLoggingBridgeHandler() {
 		try {
+
+			// 判断是否需要将 JUL 桥接为 Slf4j
 			if (isBridgeJulIntoSlf4j()) {
+
+				// 删除 jdk 内置日志 Handler
 				removeJdkLoggingBridgeHandler();
+
+				// 添加 Slf4j Handler。
 				SLF4JBridgeHandler.install();
 			}
 		}
@@ -80,13 +90,24 @@ public abstract class Slf4JLoggingSystem extends AbstractLoggingSystem {
 	 * @since 2.0.4
 	 */
 	protected final boolean isBridgeJulIntoSlf4j() {
+
+		/**
+		 * {@link #isBridgeHandlerAvailable()}
+		 * {@link #isJulUsingASingleConsoleHandlerAtMost()}
+		 */
 		return isBridgeHandlerAvailable() && isJulUsingASingleConsoleHandlerAtMost();
 	}
 
 	protected final boolean isBridgeHandlerAvailable() {
+		/*
+		 * 判断 `org.slf4j.bridge.SLF4JBridgeHandler` 是否存在于类路径下。
+		 */
 		return ClassUtils.isPresent(BRIDGE_HANDLER, getClassLoader());
 	}
 
+	/**
+	 * 判断是否不存在 handler。或只存在一个 `ConsoleHandler`
+	 */
 	private boolean isJulUsingASingleConsoleHandlerAtMost() {
 		Logger rootLogger = LogManager.getLogManager().getLogger("");
 		Handler[] handlers = rootLogger.getHandlers();
@@ -94,9 +115,14 @@ public abstract class Slf4JLoggingSystem extends AbstractLoggingSystem {
 				|| (handlers.length == 1 && handlers[0] instanceof ConsoleHandler);
 	}
 
+
+	// 移除 handler。
 	private void removeJdkLoggingBridgeHandler() {
 		try {
+			// 移除 `ConsoleHandler`
 			removeDefaultRootHandler();
+
+			// 移除 slf4j 相关的 handler。
 			SLF4JBridgeHandler.uninstall();
 		}
 		catch (Throwable ex) {

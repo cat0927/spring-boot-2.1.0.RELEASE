@@ -92,6 +92,8 @@ class DataSourceInitializer {
 	 * @see DataSourceProperties#getSchema()
 	 */
 	public boolean createSchema() {
+
+		// 获取指定位置路径的 SQL 文件
 		List<Resource> scripts = getScripts("spring.datasource.schema",
 				this.properties.getSchema(), "schema");
 		if (!scripts.isEmpty()) {
@@ -111,6 +113,12 @@ class DataSourceInitializer {
 	 * @see DataSourceProperties#getData()
 	 */
 	public void initSchema() {
+
+		/*
+		 *  获取指定位置路径的 SQL 文件。
+		 *
+		 *  `spring.datasource.data`= classpath:data-xx.sql
+		 */
 		List<Resource> scripts = getScripts("spring.datasource.data",
 				this.properties.getData(), "data");
 		if (!scripts.isEmpty()) {

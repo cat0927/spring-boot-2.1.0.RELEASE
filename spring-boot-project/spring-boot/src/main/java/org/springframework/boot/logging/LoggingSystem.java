@@ -149,13 +149,25 @@ public abstract class LoggingSystem {
 	 * @return the logging system
 	 */
 	public static LoggingSystem get(ClassLoader classLoader) {
+		// 从系统变量中获得 LoggingSystem 的类名。
 		String loggingSystem = System.getProperty(SYSTEM_PROPERTY);
 		if (StringUtils.hasLength(loggingSystem)) {
 			if (NONE.equals(loggingSystem)) {
 				return new NoOpLoggingSystem();
 			}
+
+			// 如果存在，则通过 反射进行对象初始化
 			return get(classLoader, loggingSystem);
 		}
+
+		/**
+		 * 从 SYSTEMS 筛选并初始化 LoggingSystem 对象。
+		 *
+		 *  SYSTEMS 是Map 结构，key: 对应日志系统的核心类、value：LoggingSystem 的具体实现类。
+		 *
+		 *   {@link ClassUtils#isPresent(String, ClassLoader)} key 对应的类存在classpath 中。
+		 *
+		 */
 		return SYSTEMS.entrySet().stream()
 				.filter((entry) -> ClassUtils.isPresent(entry.getKey(), classLoader))
 				.map((entry) -> get(classLoader, entry.getValue())).findFirst()

@@ -57,12 +57,28 @@ class DataSourceInitializerInvoker
 		this.applicationContext = applicationContext;
 	}
 
+	/**
+	 *
+	 * 实现 InitializingBean 接口。当 beanFactory 设置完属性之后，会调用 `afterPropertiesSet` 完成自定义操作
+	 */
 	@Override
 	public void afterPropertiesSet() {
+
+		/**
+		 * 获取 DataSourceInitializer 基于 DataSourceProperties 初始化 DataSource.{@link #getDataSourceInitializer()}
+		 */
 		DataSourceInitializer initializer = getDataSourceInitializer();
 		if (initializer != null) {
+
+			/**
+			 * 执行 DDL 语句（schema-*.sql）{@link DataSourceInitializer#createSchema()}
+			 */
 			boolean schemaCreated = this.dataSourceInitializer.createSchema();
 			if (schemaCreated) {
+
+				/**
+				 * 初始化 {@link #initialize(DataSourceInitializer)}
+				 */
 				initialize(initializer);
 			}
 		}
@@ -70,10 +86,18 @@ class DataSourceInitializerInvoker
 
 	private void initialize(DataSourceInitializer initializer) {
 		try {
+
+			// 发布 `DataSourceSchemaCreatedEvent` 事件
 			this.applicationContext.publishEvent(
 					new DataSourceSchemaCreatedEvent(initializer.getDataSource()));
 			// The listener might not be registered yet, so don't rely on it.
+
+			// 此时，监听器可能尚未注册，不能完全依赖，因此主动调用。
 			if (!this.initialized) {
+
+				/**
+				 * {@link DataSourceInitializer#initSchema()}
+				 */
 				this.dataSourceInitializer.initSchema();
 				this.initialized = true;
 			}
@@ -84,10 +108,21 @@ class DataSourceInitializerInvoker
 		}
 	}
 
+	/**
+	 * 实现 ApplicationListener 接口，具有事件监听。
+	 * @param event
+	 */
 	@Override
 	public void onApplicationEvent(DataSourceSchemaCreatedEvent event) {
 		// NOTE the event can happen more than once and
 		// the event datasource is not used here
+
+		/**
+		 * 事件发生在 {@link #initialize(DataSourceInitializer)}
+		 *
+		 *  事件可能发生多次，这里未使用数据源事件。
+		 *
+		 */
 		DataSourceInitializer initializer = getDataSourceInitializer();
 		if (!this.initialized && initializer != null) {
 			initializer.initSchema();

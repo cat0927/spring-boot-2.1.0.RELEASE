@@ -28,51 +28,57 @@ public enum CacheType {
 
 	/**
 	 * Generic caching using 'Cache' beans from the context.
+	 *
+	 *  使用上下文中的 Cache Bean  进行通用缓存。
 	 */
 	GENERIC,
 
 	/**
 	 * JCache (JSR-107) backed caching.
+	 *
+	 *  JCache 支持的缓存
 	 */
 	JCACHE,
 
 	/**
 	 * EhCache backed caching.
+	 *
+	 *  EhCache 支持的缓存
 	 */
 	EHCACHE,
 
 	/**
-	 * Hazelcast backed caching.
+	 * Hazelcast backed caching.（支持的缓存）
 	 */
 	HAZELCAST,
 
 	/**
-	 * Infinispan backed caching.
+	 * Infinispan backed caching. （支持的缓存）
 	 */
 	INFINISPAN,
 
 	/**
-	 * Couchbase backed caching.
+	 * Couchbase backed caching. （支持的缓存）
 	 */
 	COUCHBASE,
 
 	/**
-	 * Redis backed caching.
+	 * Redis backed caching. （支持的缓存）
 	 */
 	REDIS,
 
 	/**
-	 * Caffeine backed caching.
+	 * Caffeine backed caching. （支持的缓存）
 	 */
 	CAFFEINE,
 
 	/**
-	 * Simple in-memory caching.
+	 * Simple in-memory caching. （支持的缓存）
 	 */
 	SIMPLE,
 
 	/**
-	 * No caching.
+	 * No caching. 不支持缓存。
 	 */
 	NONE
 

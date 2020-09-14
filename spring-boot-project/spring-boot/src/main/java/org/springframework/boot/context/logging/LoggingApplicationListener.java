@@ -40,6 +40,7 @@ import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingInitializationContext;
 import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.boot.logging.LoggingSystemProperties;
+import org.springframework.boot.logging.logback.LogbackLoggingSystem;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -86,6 +87,12 @@ import org.springframework.util.StringUtils;
  * @author Madhura Bhave
  * @since 2.0.0
  * @see LoggingSystem#get(ClassLoader)
+ *
+ *  日志监听器。
+ *
+ *   主要作用：
+ *   1、配置 {@link LoggingSystem}
+ *   2、如果环境中包含配置 `logging.config` 将用于引导日志记录系统, 否则使用默认配置。
  */
 public class LoggingApplicationListener implements GenericApplicationListener {
 
@@ -190,39 +197,79 @@ public class LoggingApplicationListener implements GenericApplicationListener {
 		return false;
 	}
 
+	/**
+	 * 针对性的处理不同事件。
+	 * @param event
+	 */
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ApplicationStartingEvent) {
+
+			/**
+			 * springboot 启动时触发 {@link #onApplicationStartingEvent(ApplicationStartingEvent)}
+			 */
 			onApplicationStartingEvent((ApplicationStartingEvent) event);
 		}
 		else if (event instanceof ApplicationEnvironmentPreparedEvent) {
+
+			/**
+			 * Environment 环境准备初级阶段触发 {@link #onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent)}
+			 */
 			onApplicationEnvironmentPreparedEvent(
 					(ApplicationEnvironmentPreparedEvent) event);
 		}
 		else if (event instanceof ApplicationPreparedEvent) {
+
+			/**
+			 * 应用上下文准备完成，但未刷新时触发
+			 */
 			onApplicationPreparedEvent((ApplicationPreparedEvent) event);
 		}
 		else if (event instanceof ContextClosedEvent && ((ContextClosedEvent) event)
 				.getApplicationContext().getParent() == null) {
+
+			/**
+			 * 容器关闭时处理
+			 */
 			onContextClosedEvent();
 		}
 		else if (event instanceof ApplicationFailedEvent) {
+
+			/**
+			 * 容器启动失败处理
+			 */
 			onApplicationFailedEvent();
 		}
 	}
 
 	private void onApplicationStartingEvent(ApplicationStartingEvent event) {
+
+		/**
+		 * 获取 loggingSystem 对象 {@link LoggingSystem#get(ClassLoader)}
+		 */
 		this.loggingSystem = LoggingSystem
 				.get(event.getSpringApplication().getClassLoader());
+
+		/**
+		 *  预初始化操作 {@link LogbackLoggingSystem#beforeInitialize()}
+		 */
 		this.loggingSystem.beforeInitialize();
 	}
 
+	/**
+	 * Environment 环境准备初级阶段触发.
+	 * @param event
+	 */
 	private void onApplicationEnvironmentPreparedEvent(
 			ApplicationEnvironmentPreparedEvent event) {
 		if (this.loggingSystem == null) {
 			this.loggingSystem = LoggingSystem
 					.get(event.getSpringApplication().getClassLoader());
 		}
+
+		/**
+		 * 初始化操作 {@link #initialize(ConfigurableEnvironment, ClassLoader)}
+		 */
 		initialize(event.getEnvironment(), event.getSpringApplication().getClassLoader());
 	}
 
@@ -254,14 +301,32 @@ public class LoggingApplicationListener implements GenericApplicationListener {
 	 */
 	protected void initialize(ConfigurableEnvironment environment,
 			ClassLoader classLoader) {
+
+		// 创建 LoggingSystemProperties 对象，并设置默认属性。
 		new LoggingSystemProperties(environment).apply();
+
+		// 获取 LogFile 如果 LogFile 存在，则向系统属性写入 LogFile 配置的文件路径。
 		LogFile logFile = LogFile.get(environment);
 		if (logFile != null) {
 			logFile.applyToSystemProperties();
 		}
+
+		// 早期设置 springBootLogging 用于早期设置 springBootLogging 的值和 LoggingSystem 的初始化。
 		initializeEarlyLoggingLevel(environment);
+
+		/**
+		 * 初始化 LoggingSystem.{@link #initializeSystem(ConfigurableEnvironment, LoggingSystem, LogFile)}
+		 */
 		initializeSystem(environment, this.loggingSystem, logFile);
+
+		/**
+		 * 最终设置日志级别 {@link #initializeFinalLoggingLevels(ConfigurableEnvironment, LoggingSystem)}
+		 */
 		initializeFinalLoggingLevels(environment, this.loggingSystem);
+
+		/**
+		 * 注册 shutdownHook. {@link #registerShutdownHookIfNecessary(Environment, LoggingSystem)}
+		 */
 		registerShutdownHookIfNecessary(environment, this.loggingSystem);
 	}
 
@@ -285,13 +350,23 @@ public class LoggingApplicationListener implements GenericApplicationListener {
 			LoggingSystem system, LogFile logFile) {
 		LoggingInitializationContext initializationContext = new LoggingInitializationContext(
 				environment);
+
+		// 获取 logging.config 的值。
 		String logConfig = environment.getProperty(CONFIG_PROPERTY);
 		if (ignoreLogConfig(logConfig)) {
+
+			/**
+			 * 如果 logging.config 没有配置或配置值为 -D开头，则调用 LoggingSystem 方法进行初始化。
+			 *
+			 *  {@link org.springframework.boot.logging.AbstractLoggingSystem#initialize(LoggingInitializationContext, String, LogFile)}
+			 */
 			system.initialize(initializationContext, null, logFile);
 		}
 		else {
 			try {
 				ResourceUtils.getURL(logConfig).openStream().close();
+
+				// 存在则调用 LoggingSystem 方法进行初始化。
 				system.initialize(initializationContext, logConfig, logFile);
 			}
 			catch (Exception ex) {

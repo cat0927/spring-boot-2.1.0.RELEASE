@@ -300,6 +300,8 @@ public class SpringApplication {
 		 *
 		 * 	 3.1、放入全局变量 “listeners”
 		 *
+		 * 	 【 日志监听器】{@link org.springframework.boot.context.logging.LoggingApplicationListener}
+		 *
 		 */
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
 

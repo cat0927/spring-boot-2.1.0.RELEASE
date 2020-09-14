@@ -53,14 +53,26 @@ import org.springframework.util.Assert;
  * @author Stephane Nicoll
  * @since 1.3.0
  * @see EnableCaching
+ *
+ *  缓存自动配置
  */
 @Configuration
+
+// CacheManager 类是一个缓存管理器的接口。管理各种缓存（cache）组件。
 @ConditionalOnClass(CacheManager.class)
+
+// 需要使用 @EnableCaching 时才有效，这是因为该注解隐式的导致了 CacheInterceptor 对应的bean 初始化。
 @ConditionalOnBean(CacheAspectSupport.class)
 @ConditionalOnMissingBean(value = CacheManager.class, name = "cacheResolver")
+
+// 加载缓存 CaheProperties 配置项。
 @EnableConfigurationProperties(CacheProperties.class)
 @AutoConfigureAfter({ CouchbaseAutoConfiguration.class, HazelcastAutoConfiguration.class,
 		HibernateJpaAutoConfiguration.class, RedisAutoConfiguration.class })
+
+/**
+ * 导入 {@link CacheConfigurationImportSelector} 其实是导入符合条件的 SpringCache 使用的各类基础缓存框架的配置。
+ */
 @Import(CacheConfigurationImportSelector.class)
 public class CacheAutoConfiguration {
 
@@ -123,9 +135,17 @@ public class CacheAutoConfiguration {
 
 		@Override
 		public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+
+			/**
+			 *  {@link CacheType} 支持的缓存类型
+			 */
 			CacheType[] types = CacheType.values();
 			String[] imports = new String[types.length];
 			for (int i = 0; i < types.length; i++) {
+
+				/**
+				 *  获得每种缓存对应的自动配置类 {@link CacheConfigurations#getConfigurationClass(CacheType)}
+				 */
 				imports[i] = CacheConfigurations.getConfigurationClass(types[i]);
 			}
 			return imports;

@@ -37,6 +37,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnBean(Cache.class)
 @ConditionalOnMissingBean(CacheManager.class)
+
+/**
+ * 指定当满足 CacheCondition 指定的条件时进行实例化操作。{@link CacheCondition}
+ */
 @Conditional(CacheCondition.class)
 class GenericCacheConfiguration {
 

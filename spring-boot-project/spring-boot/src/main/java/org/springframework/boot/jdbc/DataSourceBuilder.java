@@ -125,6 +125,10 @@ public final class DataSourceBuilder<T extends DataSource> {
 
 	@SuppressWarnings("unchecked")
 	public static Class<? extends DataSource> findType(ClassLoader classLoader) {
+
+		/**
+		 * 遍历所支持的数据源类型 {@link #DATA_SOURCE_TYPE_NAMES}
+		 */
 		for (String name : DATA_SOURCE_TYPE_NAMES) {
 			try {
 				return (Class<? extends DataSource>) ClassUtils.forName(name,

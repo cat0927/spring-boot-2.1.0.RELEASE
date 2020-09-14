@@ -44,11 +44,21 @@ import org.springframework.jms.support.destination.DestinationResolver;
  *
  * @author Greg Turnquist
  * @author Stephane Nicoll
+ *
+ *  【 JMS 自动装配 】
  */
 @Configuration
 @ConditionalOnClass({ Message.class, JmsTemplate.class })
+
+// ConnectionFactory 接口用于创建与 JMS 代理进行交互的 javax.jms.Connection 标准方法。
 @ConditionalOnBean(ConnectionFactory.class)
+
+// 引入 JMS 配置属性类，对应就是 `spring.jms` 为前缀的属性
 @EnableConfigurationProperties(JmsProperties.class)
+
+/**
+ * import 引入{@link JmsAnnotationDrivenConfiguration} 用于Spring 4.1 注解驱动的 JMS 自动配置。
+ */
 @Import(JmsAnnotationDrivenConfiguration.class)
 public class JmsAutoConfiguration {
 
@@ -74,7 +84,11 @@ public class JmsAutoConfiguration {
 		@ConditionalOnSingleCandidate(ConnectionFactory.class)
 		public JmsTemplate jmsTemplate(ConnectionFactory connectionFactory) {
 			PropertyMapper map = PropertyMapper.get();
+
+			// 基于 ConnectionFactory 创建 JmsTemplate 对象。
 			JmsTemplate template = new JmsTemplate(connectionFactory);
+
+			// 设置是否为 发布订阅模式。
 			template.setPubSubDomain(this.properties.isPubSubDomain());
 			map.from(this.destinationResolver::getIfUnique).whenNonNull()
 					.to(template::setDestinationResolver);

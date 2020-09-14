@@ -133,6 +133,9 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 				new ApplicationStartedEvent(this.application, this.args, context));
 	}
 
+	/**
+	 *  通知监听器：容器正在运行。
+	 */
 	@Override
 	public void running(ConfigurableApplicationContext context) {
 		context.publishEvent(

@@ -32,6 +32,12 @@ import org.springframework.context.annotation.Configuration;
  * @since 1.3.0
  */
 @Configuration
+
+/**
+ * 自动配置文件简单
+ * 1、容器中不存在 `CacheManager` bean.
+ * 2、同时满足 `{@link CacheCondition}` 中指定的条件。
+ */
 @ConditionalOnMissingBean(CacheManager.class)
 @Conditional(CacheCondition.class)
 class SimpleCacheConfiguration {
@@ -48,11 +54,19 @@ class SimpleCacheConfiguration {
 
 	@Bean
 	public ConcurrentMapCacheManager cacheManager() {
+
+		/**
+		 * {@link ConcurrentMapCacheManager#ConcurrentMapCacheManager()}  构造函数
+		 */
 		ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
 		List<String> cacheNames = this.cacheProperties.getCacheNames();
 		if (!cacheNames.isEmpty()) {
 			cacheManager.setCacheNames(cacheNames);
 		}
+
+		/**
+		 * {@link CacheManagerCustomizers#customize(CacheManager)} 进行定制化返回和处理。
+		 */
 		return this.customizerInvoker.customize(cacheManager);
 	}
 

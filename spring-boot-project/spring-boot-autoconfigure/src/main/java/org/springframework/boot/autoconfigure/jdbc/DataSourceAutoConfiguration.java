@@ -49,11 +49,23 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  */
 @Configuration
 @ConditionalOnClass({ DataSource.class, EmbeddedDatabaseType.class })
+
+// 装配 DataSourceProperties
 @EnableConfigurationProperties(DataSourceProperties.class)
+
+/**
+ * 引入两个自动配置类
+ *  {@link DataSourcePoolMetadataProvidersConfiguration}
+ *  {@link DataSourceInitializationConfiguration}
+ */
 @Import({ DataSourcePoolMetadataProvidersConfiguration.class,
 		DataSourceInitializationConfiguration.class })
 public class DataSourceAutoConfiguration {
 
+	/**
+	 * conditional {@link EmbeddedDatabaseCondition}
+	 * 对内嵌数据源进行配置 {@link EmbeddedDataSourceConfiguration}
+	 */
 	@Configuration
 	@Conditional(EmbeddedDatabaseCondition.class)
 	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
@@ -62,6 +74,11 @@ public class DataSourceAutoConfiguration {
 
 	}
 
+	/**
+	 * conditional {@link PooledDataSourceCondition}
+	 * import 前4个是
+	 *
+	 */
 	@Configuration
 	@Conditional(PooledDataSourceCondition.class)
 	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
@@ -78,15 +95,21 @@ public class DataSourceAutoConfiguration {
 	 */
 	static class PooledDataSourceCondition extends AnyNestedCondition {
 
+		/**
+		 * 设置 condition 配置阶段
+		 * 如果 condition 不匹配，则 @Configuration 注解的类不会加载。
+		 */
 		PooledDataSourceCondition() {
 			super(ConfigurationPhase.PARSE_CONFIGURATION);
 		}
 
+		// spring.datasource.type 配置条件判断。
 		@ConditionalOnProperty(prefix = "spring.datasource", name = "type")
 		static class ExplicitType {
 
 		}
 
+		// 内部类 `PooledDataSourceAvailableCondition` 作为条件判断。
 		@Conditional(PooledDataSourceAvailableCondition.class)
 		static class PooledDataSourceAvailable {
 
@@ -104,6 +127,8 @@ public class DataSourceAutoConfiguration {
 				AnnotatedTypeMetadata metadata) {
 			ConditionMessage.Builder message = ConditionMessage
 					.forCondition("PooledDataSource");
+
+			// 检查指定的类加载器中是否存在默认指定的数据源，存在则返回匹配。
 			if (getDataSourceClassLoader(context) != null) {
 				return ConditionOutcome
 						.match(message.foundExactly("supported DataSource"));
@@ -133,6 +158,12 @@ public class DataSourceAutoConfiguration {
 	 */
 	static class EmbeddedDatabaseCondition extends SpringBootCondition {
 
+		/**
+		 * PooledDataSourceCondition 检查是否设置了 spring.datasource.type 或 {@link DataSourceAutoConfiguration.PooledDataSourceAvailableCondition}
+		 *
+		 *  {@link PooledDataSourceCondition}
+		 *
+		 */
 		private final SpringBootCondition pooledCondition = new PooledDataSourceCondition();
 
 		@Override
@@ -140,16 +171,22 @@ public class DataSourceAutoConfiguration {
 				AnnotatedTypeMetadata metadata) {
 			ConditionMessage.Builder message = ConditionMessage
 					.forCondition("EmbeddedDataSource");
+
+			// 是否支持池化的数据源，支持则返回不匹配。
 			if (anyMatches(context, metadata, this.pooledCondition)) {
 				return ConditionOutcome
 						.noMatch(message.foundExactly("supported pooled data source"));
 			}
+
+			// 基于枚举类 EmbeddedDatabaseType， 通过类加载器获得嵌入的数据库连接信息。
 			EmbeddedDatabaseType type = EmbeddedDatabaseConnection
 					.get(context.getClassLoader()).getType();
 			if (type == null) {
 				return ConditionOutcome
 						.noMatch(message.didNotFind("embedded database").atAll());
 			}
+
+			// 如果枚举类，不存在，则返回匹配。
 			return ConditionOutcome.match(message.found("embedded database").items(type));
 		}
 
