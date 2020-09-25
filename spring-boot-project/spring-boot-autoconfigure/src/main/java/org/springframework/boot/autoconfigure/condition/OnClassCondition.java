@@ -43,6 +43,11 @@ import org.springframework.util.StringUtils;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class OnClassCondition extends FilteringSpringBootCondition {
 
+	/**
+	 *
+	 *  `OnClassCondition` 最终使用类加载器（classLoader）是否提前装载。
+	 *
+	 */
 	@Override
 	protected final ConditionOutcome[]  getOutcomes(String[] autoConfigurationClasses,
 			AutoConfigurationMetadata autoConfigurationMetadata) {
@@ -50,14 +55,30 @@ class OnClassCondition extends FilteringSpringBootCondition {
 		// additional thread seems to offer the best performance. More threads make
 		// things worse
 		int split = autoConfigurationClasses.length / 2;
+
+		/**
+		 * 创建 `OutcomesResolver` {@link #createOutcomesResolver(String[], int, int, AutoConfigurationMetadata)}
+		 *
+		 *  1、firstHalfResolver、 secondHalfResolver 以 `autoConfigurationClasses.length` 长度，各一半（类似二叉查找方式）
+		 *  2、然后转换成 `ConditionOutcome` 类型，
+		 *  3、通过拷贝方式，`merge` 在一起。
+		 */
 		OutcomesResolver firstHalfResolver = createOutcomesResolver(
 				autoConfigurationClasses, 0, split, autoConfigurationMetadata);
 		OutcomesResolver secondHalfResolver = new StandardOutcomesResolver(
 				autoConfigurationClasses, split, autoConfigurationClasses.length,
 				autoConfigurationMetadata, getBeanClassLoader());
+
+		/**
+		 *  secondHalfResolver、firstHalfResolver 具体实现类都是 `StandardOutcomesResolver`
+		 *
+		 *  {@link StandardOutcomesResolver#resolveOutcomes()}
+		 */
 		ConditionOutcome[] secondHalf = secondHalfResolver.resolveOutcomes();
 		ConditionOutcome[] firstHalf = firstHalfResolver.resolveOutcomes();
 		ConditionOutcome[] outcomes = new ConditionOutcome[autoConfigurationClasses.length];
+
+		// 将结果，merge
 		System.arraycopy(firstHalf, 0, outcomes, 0, firstHalf.length);
 		System.arraycopy(secondHalf, 0, outcomes, split, secondHalf.length);
 		return outcomes;
@@ -65,6 +86,10 @@ class OnClassCondition extends FilteringSpringBootCondition {
 
 	private OutcomesResolver createOutcomesResolver(String[] autoConfigurationClasses,
 			int start, int end, AutoConfigurationMetadata autoConfigurationMetadata) {
+
+		/**
+		 *  具体实现类 {@link StandardOutcomesResolver#StandardOutcomesResolver(String[], int, int, AutoConfigurationMetadata, ClassLoader)}
+		 */
 		OutcomesResolver outcomesResolver = new StandardOutcomesResolver(
 				autoConfigurationClasses, start, end, autoConfigurationMetadata,
 				getBeanClassLoader());
@@ -190,6 +215,10 @@ class OnClassCondition extends FilteringSpringBootCondition {
 
 		@Override
 		public ConditionOutcome[] resolveOutcomes() {
+
+			/**
+			 *  核心实现 {@link #getOutcomes(String[], int, int, AutoConfigurationMetadata)}
+			 */
 			return getOutcomes(this.autoConfigurationClasses, this.start, this.end,
 					this.autoConfigurationMetadata);
 		}
@@ -203,6 +232,8 @@ class OnClassCondition extends FilteringSpringBootCondition {
 					String candidates = autoConfigurationMetadata
 							.get(autoConfigurationClass, "ConditionalOnClass");
 					if (candidates != null) {
+
+						// 具体实现
 						outcomes[i - start] = getOutcome(candidates);
 					}
 				}
@@ -213,11 +244,15 @@ class OnClassCondition extends FilteringSpringBootCondition {
 		private ConditionOutcome getOutcome(String candidates) {
 			try {
 				if (!candidates.contains(",")) {
+
+					// (getOutcome)
 					return getOutcome(candidates, ClassNameFilter.MISSING,
 							this.beanClassLoader);
 				}
 				for (String candidate : StringUtils
 						.commaDelimitedListToStringArray(candidates)) {
+
+					// (getOutcome)
 					ConditionOutcome outcome = getOutcome(candidate,
 							ClassNameFilter.MISSING, this.beanClassLoader);
 					if (outcome != null) {
@@ -235,7 +270,7 @@ class OnClassCondition extends FilteringSpringBootCondition {
 				ClassNameFilter classNameFilter, ClassLoader classLoader) {
 
 			/**
-			 * 通过类加载判断是否存在 {@link org.springframework.boot.autoconfigure.condition.FilteringSpringBootCondition.ClassNameFilter#matches(String, ClassLoader)}
+			 * 【 通过类加载判断是否存在 】 {@link org.springframework.boot.autoconfigure.condition.FilteringSpringBootCondition.ClassNameFilter#matches(String, ClassLoader)}
 			 */
 			if (classNameFilter.matches(className, classLoader)) {
 				return ConditionOutcome.noMatch(ConditionMessage

@@ -28,6 +28,9 @@ import org.springframework.boot.autoconfigure.AutoConfigurationImportListener;
  * {@link ConditionEvaluationReport}.
  *
  * @author Phillip Webb
+ *
+ *
+ *  `AutoConfigurationImportListener` SpringBoot 1.5 引入的。
  */
 class ConditionEvaluationReportAutoConfigurationImportListener
 		implements AutoConfigurationImportListener, BeanFactoryAware {

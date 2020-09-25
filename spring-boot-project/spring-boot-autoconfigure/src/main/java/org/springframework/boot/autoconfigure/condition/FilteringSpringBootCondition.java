@@ -50,14 +50,11 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 				.find(this.beanFactory);
 
 		/**
-		 * 【 getOutcomes 】{@link OnClassCondition#getOutcomes(String[], AutoConfigurationMetadata)}
+		 * 【 getOutcomes 】具体实现在子类中。
 		 *
-		 *
-		 *  OnBeanCondition、
-		 * 	OnClassCondition、
-		 * 	OnWebApplicationCondition
-		 *
-		 *  三个实现类。
+		 * 	{@link OnClassCondition#getOutcomes(String[], AutoConfigurationMetadata)}
+		 * 	{@link OnBeanCondition#getOutcomes(String[], AutoConfigurationMetadata)}
+		 * 	{@link OnWebApplicationCondition#getOutcomes(String[], AutoConfigurationMetadata)}
 		 *
 		 */
 		ConditionOutcome[] outcomes = getOutcomes(autoConfigurationClasses,
@@ -140,7 +137,9 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 		public abstract boolean matches(String className, ClassLoader classLoader);
 
 
-		// 同类加载是否抛出异常，来判断类是否存在
+		/**
+		 * 同类加载是否抛出异常，来判断类是否存在
+		 */
 		public static boolean isPresent(String className, ClassLoader classLoader) {
 			if (classLoader == null) {
 				classLoader = ClassUtils.getDefaultClassLoader();

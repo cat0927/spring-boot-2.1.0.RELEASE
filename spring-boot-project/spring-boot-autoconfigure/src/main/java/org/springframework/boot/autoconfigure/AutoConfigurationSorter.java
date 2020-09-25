@@ -53,7 +53,8 @@ class AutoConfigurationSorter {
 
 	/**
 	 * 对自动装配 Class 集合进行排序。
-	 * @param classNames
+	 *  1、如果自动装配 class 集合中未包含 @AutoConfigureOrder 等顺序注解，则他们是 按照字母顺序依次加载的。
+	 * @param classNames  自动装配的类名
 	 * @return
 	 */
 	public List<String> getInPriorityOrder(Collection<String> classNames) {
@@ -72,7 +73,8 @@ class AutoConfigurationSorter {
 		orderedClassNames.sort((o1, o2) -> {
 
 			/**
-			 * 【 getOrder】{@link AutoConfigurationClass#getOrder()} 
+			 * 【读取自动装配类 autoConfigurationOrder 配置值 】{@link AutoConfigurationClass#getOrder()}
+			 *   1、值不存在, 设置默认值: 0.
 			 */
 			int i1 = classes.get(o1).getOrder();
 			int i2 = classes.get(o2).getOrder();
@@ -229,6 +231,11 @@ class AutoConfigurationSorter {
 			return this.after;
 		}
 
+
+		/**
+		 * 获取 `order`
+		 * @return
+		 */
 		private int getOrder() {
 
 			/**

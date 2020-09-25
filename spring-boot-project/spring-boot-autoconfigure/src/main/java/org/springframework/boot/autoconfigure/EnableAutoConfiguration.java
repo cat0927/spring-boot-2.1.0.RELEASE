@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.support.SpringFactoriesLoader;
+import org.springframework.core.type.AnnotationMetadata;
 
 /**
  * Enable auto-configuration of the Spring Application Context, attempting to guess and
@@ -76,9 +77,13 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-// 自动装配
+/**
+ * 自动装配 BasePackages {@link AutoConfigurationPackage}
+ */
 @AutoConfigurationPackage
-// 自动装载配置原理 “AutoConfigurationImportSelector”
+/**
+ * 自动装载配置原理 “AutoConfigurationImportSelector” {@link AutoConfigurationImportSelector#selectImports(AnnotationMetadata)}
+ */
 @Import(AutoConfigurationImportSelector.class)
 public @interface EnableAutoConfiguration {
 

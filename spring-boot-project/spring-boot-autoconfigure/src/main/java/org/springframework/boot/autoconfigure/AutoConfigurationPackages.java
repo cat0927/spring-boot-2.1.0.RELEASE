@@ -103,6 +103,8 @@ public abstract class AutoConfigurationPackages {
 			// 获取构造器参数元信息。
 			ConstructorArgumentValues constructorArguments = beanDefinition
 					.getConstructorArgumentValues();
+
+			// 将本次的标注类所在的 package 追加至其中。
 			constructorArguments.addIndexedArgumentValue(0,
 
 					/**
@@ -113,9 +115,13 @@ public abstract class AutoConfigurationPackages {
 		else {
 			GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
 			beanDefinition.setBeanClass(BasePackages.class);
+
+			// 将本次的标注类所在的 package 追加至其中。
 			beanDefinition.getConstructorArgumentValues().addIndexedArgumentValue(0,
 					packageNames);
 			beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+			// 注册到 容器中。
 			registry.registerBeanDefinition(BEAN, beanDefinition);
 		}
 	}
@@ -135,6 +141,7 @@ public abstract class AutoConfigurationPackages {
 	 * configuration.
 	 *
 	 *  【 自动扫描包 】
+	 *   1、`ImportBeanDefinitionRegistrar` 实现，通过 Registrar 注册当前类所在的 package。
 	 */
 	static class Registrar implements ImportBeanDefinitionRegistrar, DeterminableImports {
 

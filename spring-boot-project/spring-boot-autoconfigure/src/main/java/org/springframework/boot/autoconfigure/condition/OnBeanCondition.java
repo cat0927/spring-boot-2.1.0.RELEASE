@@ -108,6 +108,10 @@ class OnBeanCondition extends FilteringSpringBootCondition
 
 	private ConditionOutcome getOutcome(Set<String> requiredBeanTypes,
 			Class<? extends Annotation> annotation) {
+
+		/**
+		 * filter {@link #filter(Collection, ClassNameFilter, ClassLoader)}
+		 */
 		List<String> missing = filter(requiredBeanTypes, ClassNameFilter.MISSING,
 				getBeanClassLoader());
 		if (!missing.isEmpty()) {

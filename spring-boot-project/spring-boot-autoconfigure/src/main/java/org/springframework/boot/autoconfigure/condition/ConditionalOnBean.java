@@ -24,6 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.boot.autoconfigure.AutoConfigurationMetadata;
 import org.springframework.context.annotation.Conditional;
 
 /**
@@ -58,6 +59,10 @@ import org.springframework.context.annotation.Conditional;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+
+/**
+ * 核心实现 {@link OnBeanCondition#getOutcomes(String[], AutoConfigurationMetadata)}
+ */
 @Conditional(OnBeanCondition.class)
 public @interface ConditionalOnBean {
 

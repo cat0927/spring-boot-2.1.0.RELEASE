@@ -200,34 +200,58 @@ public class RepackageMojo extends AbstractDependencyFilterMojo {
 	@Parameter(defaultValue = "false")
 	public boolean includeSystemScope;
 
+	/**
+	 * spring-boot-maven-plugin repackage 调用 `execute`
+	 */
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (this.project.getPackaging().equals("pom")) {
 			getLog().debug("repackage goal could not be applied to pom project.");
 			return;
 		}
+		// 是否跳过
 		if (this.skip) {
 			getLog().debug("skipping repackaging as per configuration.");
 			return;
 		}
+
+		/**
+		 * {@link #repackage()}
+		 */
 		repackage();
 	}
 
 	private void repackage() throws MojoExecutionException {
+
+		// maven 生成的jar，最终的命名将加上 .orginal 后缀
 		Artifact source = getSourceArtifact();
 		File target = getTargetFile();
+
+		/**
+		 * 获取重新打包器，将 maven 生成的jar 重新打包成可执行 jar {@link #getRepackager(File)}
+		 */
 		Repackager repackager = getRepackager(source.getFile());
+
+		// 查找并过滤项目运行时依赖的 jar。
 		Set<Artifact> artifacts = filterDependencies(this.project.getArtifacts(),
 				getFilters(getAdditionalFilters()));
+
+		// 将 artifacts 转换成 libraries
 		Libraries libraries = new ArtifactsLibraries(artifacts, this.requiresUnpack,
 				getLog());
 		try {
+
+			// 获取 Spring Boot 启动脚本
 			LaunchScript launchScript = getLaunchScript();
+
+			// 执行重新打包，生成 fat.jar
 			repackager.repackage(target, libraries, launchScript);
 		}
 		catch (IOException ex) {
 			throw new MojoExecutionException(ex.getMessage(), ex);
 		}
+
+		// 将 maven 生成的 jar 更新成 .original 文件。
 		updateArtifact(source, target, repackager.getBackupFile());
 	}
 
@@ -269,6 +293,12 @@ public class RepackageMojo extends AbstractDependencyFilterMojo {
 		Repackager repackager = new Repackager(source, this.layoutFactory);
 		repackager.addMainClassTimeoutWarningListener(
 				new LoggingMainClassTimeoutWarningListener());
+
+		/**
+		 * 设置 main class名称，如果不指定，则会查找第一个包含 main 方法的类
+		 *
+		 *  repackage 最后将会设置 org.springframework.boot.load.JarLaucher.
+		 */
 		repackager.setMainClass(this.mainClass);
 		if (this.layout != null) {
 			getLog().info("Layout: " + this.layout);

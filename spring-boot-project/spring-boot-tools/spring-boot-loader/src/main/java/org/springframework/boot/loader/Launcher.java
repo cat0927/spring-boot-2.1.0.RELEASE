@@ -114,6 +114,8 @@ public abstract class Launcher {
 	protected abstract List<Archive> getClassPathArchives() throws Exception;
 
 	protected final Archive createArchive() throws Exception {
+		
+		// 通过获得当前 class 类的信息，查找到当前归档文件的路径。
 		ProtectionDomain protectionDomain = getClass().getProtectionDomain();
 		CodeSource codeSource = protectionDomain.getCodeSource();
 		URI location = (codeSource != null) ? codeSource.getLocation().toURI() : null;
@@ -126,6 +128,10 @@ public abstract class Launcher {
 			throw new IllegalStateException(
 					"Unable to determine code source archive from " + root);
 		}
+
+		/**
+		 * 如果是目录，则创建 {@link ExplodedArchive#ExplodedArchive(File)}， 否则创建 {@link JarFileArchive#JarFileArchive(File)}
+		 */
 		return (root.isDirectory() ? new ExplodedArchive(root)
 				: new JarFileArchive(root));
 	}

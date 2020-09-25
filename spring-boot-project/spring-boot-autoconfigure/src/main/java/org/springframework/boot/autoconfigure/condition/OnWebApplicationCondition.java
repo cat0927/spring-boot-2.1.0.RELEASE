@@ -48,6 +48,9 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 
 	private static final String REACTIVE_WEB_APPLICATION_CLASS = "org.springframework.web.reactive.HandlerResult";
 
+	/**
+	 *  通过容器类型、判断 `ClassLoader` 是否提前加载对应的类。
+	 */
 	@Override
 	protected ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses,
 			AutoConfigurationMetadata autoConfigurationMetadata) {
@@ -55,6 +58,10 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		for (int i = 0; i < outcomes.length; i++) {
 			String autoConfigurationClass = autoConfigurationClasses[i];
 			if (autoConfigurationClass != null) {
+
+				/**
+				 * 具体实现 {@link #getOutcomes(String)}
+				 */
 				outcomes[i] = getOutcome(autoConfigurationMetadata
 						.get(autoConfigurationClass, "ConditionalOnWebApplication"));
 			}
@@ -68,6 +75,11 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		}
 		ConditionMessage.Builder message = ConditionMessage
 				.forCondition(ConditionalOnWebApplication.class);
+
+		/**
+		 * 1、判断容器类型，根据容器的类型 `Servlet`、`Reactive`
+		 * 2、从 ClassLoader 中判断是否提前加载。
+		 */
 		if (ConditionalOnWebApplication.Type.SERVLET.name().equals(type)) {
 			if (!ClassNameFilter.isPresent(SERVLET_WEB_APPLICATION_CLASS,
 					getBeanClassLoader())) {
