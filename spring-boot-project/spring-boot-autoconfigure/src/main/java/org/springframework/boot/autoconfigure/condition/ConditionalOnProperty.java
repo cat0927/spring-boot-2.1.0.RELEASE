@@ -92,6 +92,8 @@ import org.springframework.core.env.Environment;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Documented
+
+// OnPropertyCondition
 @Conditional(OnPropertyCondition.class)
 public @interface ConditionalOnProperty {
 
@@ -106,6 +108,8 @@ public @interface ConditionalOnProperty {
 	 * with a dot if not specified. A valid prefix is defined by one or more words
 	 * separated with dots (e.g. {@code "acme.system.feature"}).
 	 * @return the prefix
+	 *
+	 * 	配置属性名称前缀
 	 */
 	String prefix() default "";
 
@@ -118,6 +122,8 @@ public @interface ConditionalOnProperty {
 	 * Use the dashed notation to specify each property, that is all lower case with a "-"
 	 * to separate words (e.g. {@code my-long-property}).
 	 * @return the names
+	 *
+	 *  如果 prefix() 不为空，则完整匹配属性名称为 prefix() + name() 否则为 name() 内容。
 	 */
 	String[] name() default {};
 
@@ -125,6 +131,8 @@ public @interface ConditionalOnProperty {
 	 * The string representation of the expected value for the properties. If not
 	 * specified, the property must <strong>not</strong> be equal to {@code false}.
 	 * @return the expected value
+	 *
+	 *  表示预期的配置属性值，并且禁止使用 false。
 	 */
 	String havingValue() default "";
 
@@ -132,6 +140,8 @@ public @interface ConditionalOnProperty {
 	 * Specify if the condition should match if the property is not set. Defaults to
 	 * {@code false}.
 	 * @return if should match if the property is missing
+	 *
+	 *   用于判断当属性值不存在时是否匹配。
 	 */
 	boolean matchIfMissing() default false;
 

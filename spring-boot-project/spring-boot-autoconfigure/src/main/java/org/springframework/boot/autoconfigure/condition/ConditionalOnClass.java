@@ -42,12 +42,19 @@ public @interface ConditionalOnClass {
 	 * <b>not</b> if this annotation is used as a composed, meta-annotation. In order to
 	 * use this annotation as a meta-annotation, only use the {@link #name} attribute.
 	 * @return the classes that must be present
+	 *
+	 *  提供 `类型安全` 保障，避免在开发过程中出现全类名拼写错误的低级错误。
 	 */
 	Class<?>[] value() default {};
 
 	/**
 	 * The classes names that must be present.
 	 * @return the class names that must be present.
+	 *
+	 *  多用于 三方库或高低版本兼容的场景
+	 *  例如： `webMvcAutoConfiguration`
+	 *  	1.x 全类名：org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration
+	 *  	2.x 全类名: ore.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration
 	 */
 	String[] name() default {};
 

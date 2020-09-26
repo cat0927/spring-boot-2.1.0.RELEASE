@@ -33,12 +33,16 @@ import org.springframework.context.annotation.Conditional;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+
+// OnResourceCondition
 @Conditional(OnResourceCondition.class)
 public @interface ConditionalOnResource {
 
 	/**
 	 * The resources that must be present.
 	 * @return the resource paths that must be present.
+	 *
+	 *  只有资源必须存在时条件方可成立。
 	 */
 	String[] resources() default {};
 

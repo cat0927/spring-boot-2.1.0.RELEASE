@@ -153,6 +153,8 @@ class OnBeanCondition extends FilteringSpringBootCondition
 						.forCondition(ConditionalOnSingleCandidate.class, spec)
 						.didNotFind("any beans").atAll());
 			}
+
+			// ConditionalOnSingleCandidate
 			else if (!hasSingleAutowireCandidate(context.getBeanFactory(),
 					matchResult.getNamesOfAllMatches(),
 					spec.getStrategy() == SearchStrategy.ALL)) {
@@ -166,9 +168,19 @@ class OnBeanCondition extends FilteringSpringBootCondition
 					.found("a primary bean from beans")
 					.items(Style.QUOTE, matchResult.getNamesOfAllMatches());
 		}
+
+		// ConditionalOnMissingBean
 		if (metadata.isAnnotated(ConditionalOnMissingBean.class.getName())) {
+
+			/**
+			 *  构建 `BeanSearchSpec` 对象，将注解属性进行封装。
+			 */
 			BeanSearchSpec spec = new BeanSearchSpec(context, metadata,
 					ConditionalOnMissingBean.class);
+
+			/**
+			 * 主要的匹配结果 {@link #getMatchingBeans(ConditionContext, BeanSearchSpec)}
+			 */
 			MatchResult matchResult = getMatchingBeans(context, spec);
 			if (matchResult.isAnyMatched()) {
 				String reason = createOnMissingBeanNoMatchReason(matchResult);
@@ -185,6 +197,8 @@ class OnBeanCondition extends FilteringSpringBootCondition
 	protected final MatchResult getMatchingBeans(ConditionContext context,
 			BeanSearchSpec beans) {
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+
+		// 扫描策略。搜索父容器
 		if (beans.getStrategy() == SearchStrategy.ANCESTORS) {
 			BeanFactory parent = beanFactory.getParentBeanFactory();
 			Assert.isInstanceOf(ConfigurableListableBeanFactory.class, parent,
@@ -195,11 +209,18 @@ class OnBeanCondition extends FilteringSpringBootCondition
 		boolean considerHierarchy = beans.getStrategy() != SearchStrategy.CURRENT;
 		TypeExtractor typeExtractor = beans.getTypeExtractor(context.getClassLoader());
 
-		// 计算排除 bean 名称，后续被 typeMatches 排除，核心逻辑在 【 getBeanNamesForType 】
+		/**
+		 * 计算排除 bean 名称，后续被 typeMatches 排除，核心逻辑在 【 getBeanNamesForType 】
+		 *  beans.getIgnoredTypes()， 包含 `ignored`、`ignoredType`
+		 */
 		List<String> beansIgnoredByType = getNamesOfBeansIgnoredByType(
 				beans.getIgnoredTypes(), typeExtractor, beanFactory, context,
 				considerHierarchy);
 		for (String type : beans.getTypes()) {
+
+			/**
+			 * 核心逻辑 {@link #getBeanNamesForType(ListableBeanFactory, String, TypeExtractor, ClassLoader, boolean)}
+			 */
 			Collection<String> typeMatches = getBeanNamesForType(beanFactory, type,
 					typeExtractor, context.getClassLoader(), considerHierarchy);
 			typeMatches.removeAll(beansIgnoredByType);
@@ -289,6 +310,8 @@ class OnBeanCondition extends FilteringSpringBootCondition
 			String type, TypeExtractor typeExtractor, ClassLoader classLoader,
 			boolean considerHierarchy) throws LinkageError {
 		try {
+
+			// getBeanNamesForType
 			return getBeanNamesForType(beanFactory, considerHierarchy,
 					ClassUtils.forName(type, classLoader), typeExtractor);
 		}
@@ -297,9 +320,18 @@ class OnBeanCondition extends FilteringSpringBootCondition
 		}
 	}
 
+	/**
+	 * @param beanFactory
+	 * @param considerHierarchy
+	 * @param type 忽略的类
+	 * @param typeExtractor
+	 * @return
+	 */
 	private Collection<String> getBeanNamesForType(ListableBeanFactory beanFactory,
 			boolean considerHierarchy, Class<?> type, TypeExtractor typeExtractor) {
 		Set<String> result = new LinkedHashSet<>();
+
+		// 最终结果
 		collectBeanNamesForType(result, beanFactory, type, typeExtractor,
 				considerHierarchy);
 		return result;
@@ -309,11 +341,17 @@ class OnBeanCondition extends FilteringSpringBootCondition
 			ListableBeanFactory beanFactory, Class<?> type, TypeExtractor typeExtractor,
 			boolean considerHierarchy) {
 		BeanTypeRegistry registry = BeanTypeRegistry.get(beanFactory);
+
+		/**
+		 * {@link BeanTypeRegistry#getNamesForType(Class, TypeExtractor)}
+		 */
 		result.addAll(registry.getNamesForType(type, typeExtractor));
 		if (considerHierarchy && beanFactory instanceof HierarchicalBeanFactory) {
 			BeanFactory parent = ((HierarchicalBeanFactory) beanFactory)
 					.getParentBeanFactory();
 			if (parent instanceof ListableBeanFactory) {
+
+				// 递归调用。
 				collectBeanNamesForType(result, (ListableBeanFactory) parent, type,
 						typeExtractor, considerHierarchy);
 			}

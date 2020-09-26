@@ -110,6 +110,8 @@ public @interface ConditionalOnMissingBean {
 	 * Strategy to decide if the application context hierarchy (parent contexts) should be
 	 * considered.
 	 * @return the search strategy
+	 *
+	 *  扫描容器策略。{@link }
 	 */
 	SearchStrategy search() default SearchStrategy.ALL;
 

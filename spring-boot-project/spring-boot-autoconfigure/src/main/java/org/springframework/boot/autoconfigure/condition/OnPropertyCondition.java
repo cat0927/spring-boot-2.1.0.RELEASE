@@ -49,6 +49,8 @@ class OnPropertyCondition extends SpringBootCondition {
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context,
 			AnnotatedTypeMetadata metadata) {
+
+		// 获取注解属性
 		List<AnnotationAttributes> allAnnotationAttributes = annotationAttributesFromMultiValueMap(
 				metadata.getAllAnnotationAttributes(
 						ConditionalOnProperty.class.getName()));
@@ -57,7 +59,7 @@ class OnPropertyCondition extends SpringBootCondition {
 		for (AnnotationAttributes annotationAttributes : allAnnotationAttributes) {
 
 			/**
-			 *  {@link #determineOutcome(AnnotationAttributes, PropertyResolver)}
+			 *  核心处理 {@link #determineOutcome(AnnotationAttributes, PropertyResolver)}
 			 */
 			ConditionOutcome outcome = determineOutcome(annotationAttributes,
 					context.getEnvironment());
@@ -94,9 +96,17 @@ class OnPropertyCondition extends SpringBootCondition {
 
 	private ConditionOutcome determineOutcome(AnnotationAttributes annotationAttributes,
 			PropertyResolver resolver) {
+
+		/**
+		 *  通过 `annotationAttributes` 构造 Spec {@link Spec#Spec(AnnotationAttributes)}
+		 */
 		Spec spec = new Spec(annotationAttributes);
 		List<String> missingProperties = new ArrayList<>();
 		List<String> nonMatchingProperties = new ArrayList<>();
+
+		/**
+		 *  匹配 {@link Spec#collectProperties(PropertyResolver, List, List)}
+		 */
 		spec.collectProperties(resolver, missingProperties, nonMatchingProperties);
 		if (!missingProperties.isEmpty()) {
 			return ConditionOutcome.noMatch(
@@ -126,12 +136,21 @@ class OnPropertyCondition extends SpringBootCondition {
 		private final boolean matchIfMissing;
 
 		Spec(AnnotationAttributes annotationAttributes) {
+
+			// 获取 prefix、还有各属性的值。
 			String prefix = annotationAttributes.getString("prefix").trim();
 			if (StringUtils.hasText(prefix) && !prefix.endsWith(".")) {
 				prefix = prefix + ".";
 			}
 			this.prefix = prefix;
 			this.havingValue = annotationAttributes.getString("havingValue");
+
+			/**
+			 * 获取
+			 *  {@link ConditionalOnProperty#name()}
+			 *  {@link ConditionalOnProperty#value()}
+			 *
+			 */
 			this.names = getNames(annotationAttributes);
 			this.matchIfMissing = annotationAttributes.getBoolean("matchIfMissing");
 		}
@@ -151,6 +170,8 @@ class OnPropertyCondition extends SpringBootCondition {
 			for (String name : this.names) {
 				String key = this.prefix + name;
 				if (resolver.containsProperty(key)) {
+
+					// 获取环境中指定 key, 和注解中 value 进行对比。
 					if (!isMatch(resolver.getProperty(key), this.havingValue)) {
 						nonMatching.add(name);
 					}

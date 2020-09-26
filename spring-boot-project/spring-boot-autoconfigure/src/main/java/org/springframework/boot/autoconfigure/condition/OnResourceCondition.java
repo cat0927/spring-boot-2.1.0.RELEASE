@@ -41,6 +41,15 @@ class OnResourceCondition extends SpringBootCondition {
 
 	private final ResourceLoader defaultResourceLoader = new DefaultResourceLoader();
 
+	/**
+	 * 大致步骤
+	 * 	1、获取 `@ConditionalOnResource` 注解元属性信息 attributes
+	 * 	2、获取 ResourceLoader 对象 loader
+	 * 	3、解析 @ConditionalOnResource # resources() 属性中存在的占位符。
+	 * 	4、通过 ResourceLoader 对象 loader，逐一判断解析后的资源位置是否存在。
+	 * 		1、如果均已存在，说明条件成立
+	 * 		2、否则，条件不成立。
+	 */
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context,
 			AnnotatedTypeMetadata metadata) {

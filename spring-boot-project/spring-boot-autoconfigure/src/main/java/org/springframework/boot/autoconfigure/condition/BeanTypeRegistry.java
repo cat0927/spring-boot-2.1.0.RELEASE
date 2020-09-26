@@ -137,6 +137,8 @@ final class BeanTypeRegistry implements SmartInitializingSingleton {
 
 	private void updateTypesIfNecessary(String name) {
 		if (!this.beanTypes.containsKey(name)) {
+
+			// 更新 beanTypes 的内容。其方法参数 name 作为key, value 为 BeanFactory#getType(String) 方法执行结果。
 			addBeanType(name);
 		}
 		else {
